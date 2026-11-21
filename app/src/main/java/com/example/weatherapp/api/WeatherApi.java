@@ -1,6 +1,6 @@
 package com.example.weatherapp.api;
 
-import com.google.gson.JsonObject;
+import com.example.weatherapp.models.WeatherResponse;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
@@ -10,8 +10,8 @@ public interface WeatherApi {
     @GET("v1/forecast")
 //    tells Retrofit which API endpoint to access.
 //@Query sends location and weather requirements.
-//Call<JsonObject> receives the API's JSON response.
-    Call<JsonObject> getWeather(
+//Call<WeatherResponse> receives the API's typed WeatherResponse model.
+    Call<WeatherResponse> getWeather(
             @Query("latitude") double latitude,
             @Query("longitude") double longitude,
             @Query("current") String current,
