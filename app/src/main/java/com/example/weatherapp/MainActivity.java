@@ -1,7 +1,11 @@
 package com.example.weatherapp;
 
+// MainActivity — single screen. Steps done here: 26 request, 27 save response,
+// 28 failures, 29 log, 30 display live temperature.
+
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.TextView;                  // Step 30
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,16 +15,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.weatherapp.api.RetrofitClient;
 import com.example.weatherapp.api.WeatherApi;
-import com.example.weatherapp.models.ApiError;
+import com.example.weatherapp.models.ApiError;   // Step 28
 import com.example.weatherapp.models.WeatherResponse;
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.Gson;                     // Step 28
+import com.google.gson.JsonSyntaxException;      // Step 28
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
+import java.io.IOException;                      // Step 28
+import java.net.SocketTimeoutException;          // Step 28
+import java.net.UnknownHostException;            // Step 28
 
-import okhttp3.ResponseBody;
+import okhttp3.ResponseBody;                     // Step 28
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -28,13 +32,19 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
+    // Step 26 — Logcat filter name
     private static final String TAG = "WEATHER_TEST";
 
+    // Step 26 — fields to request (must match API names exactly)
     private static final String CURRENT_FIELDS =
             "temperature_2m,relative_humidity_2m,apparent_temperature,"
                     + "is_day,precipitation,weather_code,wind_speed_10m";
 
+    // Step 27 — parsed response; all views read from here
     private WeatherResponse currentWeather;
+
+    // Step 30 — views updated with live data
+    private TextView tvTemperature;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,20 +52,25 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        tvTemperature = findViewById(R.id.tvTemperature);   // Step 30
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        fetchCurrentWeather(31.418, 73.079);
+        fetchCurrentWeather(31.418, 73.079);   // Faisalabad for now (GPS later: step 48)
     }
 
+    /** Step 26 — send request off the main thread. */
     private void fetchCurrentWeather(double lat, double lon) {
 
         WeatherApi api = RetrofitClient.getApi();
+
         Call<WeatherResponse> call =
                 api.getWeather(lat, lon, CURRENT_FIELDS, "", "", "auto", 1);
+        //                        hourly ─┘   └─ daily   timezone  forecast_days
 
         Log.d(TAG, "Request URL: " + call.request().url());
 
@@ -66,20 +81,20 @@ public class MainActivity extends AppCompatActivity {
                                    Response<WeatherResponse> response) {
 
                 if (response.isSuccessful()) {
-                    handleSuccess(response.body());
+                    handleSuccess(response.body());                          // Step 27
                 } else {
-                    handleHttpError(response.code(), response.errorBody());
+                    handleHttpError(response.code(), response.errorBody());  // Step 28
                 }
             }
 
             @Override
             public void onFailure(Call<WeatherResponse> call, Throwable t) {
-                handleNetworkFailure(t);
+                handleNetworkFailure(t);                                     // Step 28
             }
         });
     }
 
-    /** Success path: HTTP 2xx with a body that parsed. */
+    /** Step 27 — validate, store, then draw. */
     private void handleSuccess(WeatherResponse weather) {
 
         if (weather == null) {
@@ -93,10 +108,12 @@ public class MainActivity extends AppCompatActivity {
         }
 
         currentWeather = weather;
-        logWeather(currentWeather.current);
+
+        logWeather(currentWeather.current);   // Step 29
+        renderCurrentWeather();               // Step 30
     }
 
-    /** Step 29: one readable dump of everything the API returned. */
+    /** Step 29 — dump all fields for comparison with the UI. */
     private void logWeather(WeatherResponse.CurrentWeather c) {
 
         Log.d(TAG, "----- CURRENT WEATHER -----");
@@ -111,14 +128,27 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "---------------------------");
     }
 
-    /** Server answered, but refused the request. */
+    /** Step 30 — paint stored data onto the screen. */
+    private void renderCurrentWeather() {
+
+        if (currentWeather == null || currentWeather.current == null) {
+            Log.e(TAG, "renderCurrentWeather called with no data");
+            return;
+        }
+
+        WeatherResponse.CurrentWeather c = currentWeather.current;
+
+        tvTemperature.setText(Math.round(c.temperature) + "°");
+    }
+
+    /** Step 28 — server refused (HTTP 4xx/5xx); read its reason. */
     private void handleHttpError(int code, ResponseBody errorBody) {
 
         String body = "no error body";
 
         if (errorBody != null) {
             try {
-                body = errorBody.string();
+                body = errorBody.string();       // one-shot stream
             } catch (IOException e) {
                 body = "<unreadable>";
             }
@@ -130,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             parsed = new Gson().fromJson(body, ApiError.class);
         } catch (JsonSyntaxException ignored) {
+            // not JSON
         }
 
         if (parsed != null && parsed.reason != null) {
@@ -145,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** Never reached the server. */
+    /** Step 28 — never reached the server. */
     private void handleNetworkFailure(Throwable t) {
 
         if (t instanceof UnknownHostException) {
