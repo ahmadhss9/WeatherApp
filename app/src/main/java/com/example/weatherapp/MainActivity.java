@@ -10,6 +10,8 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.weatherapp.models.WeatherResponse;
 import com.example.weatherapp.api.RetrofitClient;
 
+
+
 public class MainActivity extends AppCompatActivity {
 
     @Override
