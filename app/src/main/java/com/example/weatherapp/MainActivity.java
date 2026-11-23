@@ -11,7 +11,16 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.weatherapp.api.RetrofitClient;
 import com.example.weatherapp.api.WeatherApi;
+import com.example.weatherapp.models.ApiError;
 import com.example.weatherapp.models.WeatherResponse;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+
+import okhttp3.ResponseBody;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -25,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
             "temperature_2m,relative_humidity_2m,apparent_temperature,"
                     + "is_day,precipitation,weather_code,wind_speed_10m";
 
-    // Step 27: the parsed response the whole UI will read from
     private WeatherResponse currentWeather;
 
     @Override
@@ -60,13 +68,13 @@ public class MainActivity extends AppCompatActivity {
                 if (response.isSuccessful()) {
                     handleSuccess(response.body());
                 } else {
-                    Log.e(TAG, "API error: HTTP " + response.code());
+                    handleHttpError(response.code(), response.errorBody());
                 }
             }
 
             @Override
             public void onFailure(Call<WeatherResponse> call, Throwable t) {
-                Log.e(TAG, "Request failed: " + t);
+                handleNetworkFailure(t);
             }
         });
     }
@@ -84,11 +92,60 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        currentWeather = weather;   // stored — step 30 will read it
+        currentWeather = weather;
 
         WeatherResponse.CurrentWeather c = currentWeather.current;
         Log.d(TAG, "time=" + c.time
                 + " temp=" + c.temperature
                 + " humidity=" + c.humidity);
+    }
+
+    /** Server answered, but refused the request. */
+    private void handleHttpError(int code, ResponseBody errorBody) {
+
+        String body = "no error body";
+
+        if (errorBody != null) {
+            try {
+                body = errorBody.string();       // readable exactly once
+            } catch (IOException e) {
+                body = "<unreadable>";
+            }
+        }
+
+        Log.e(TAG, "HTTP " + code + " — " + body);
+
+        ApiError parsed = null;
+        try {
+            parsed = new Gson().fromJson(body, ApiError.class);
+        } catch (JsonSyntaxException ignored) {
+            // body wasn't JSON (captive portal, HTML page, ...)
+        }
+
+        if (parsed != null && parsed.reason != null) {
+            Log.e(TAG, "API reason: " + parsed.reason);
+        }
+
+        if (code == 400) {
+            Log.e(TAG, "Bad request — URL or field name is wrong");
+        } else if (code == 429) {
+            Log.e(TAG, "Too many requests — wait a bit");
+        } else if (code >= 500) {
+            Log.e(TAG, "Server-side problem at Open-Meteo");
+        }
+    }
+
+    /** Never reached the server. */
+    private void handleNetworkFailure(Throwable t) {
+
+        if (t instanceof UnknownHostException) {
+            Log.e(TAG, "No internet or DNS failure", t);
+        } else if (t instanceof SocketTimeoutException) {
+            Log.e(TAG, "Request timed out", t);
+        } else if (t instanceof IOException) {
+            Log.e(TAG, "I/O problem during request", t);
+        } else {
+            Log.e(TAG, "Unexpected failure", t);
+        }
     }
 }
