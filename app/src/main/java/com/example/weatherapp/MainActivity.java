@@ -93,11 +93,22 @@ public class MainActivity extends AppCompatActivity {
         }
 
         currentWeather = weather;
+        logWeather(currentWeather.current);
+    }
 
-        WeatherResponse.CurrentWeather c = currentWeather.current;
-        Log.d(TAG, "time=" + c.time
-                + " temp=" + c.temperature
-                + " humidity=" + c.humidity);
+    /** Step 29: one readable dump of everything the API returned. */
+    private void logWeather(WeatherResponse.CurrentWeather c) {
+
+        Log.d(TAG, "----- CURRENT WEATHER -----");
+        Log.d(TAG, "time          : " + c.time);
+        Log.d(TAG, "temperature   : " + c.temperature + " °C");
+        Log.d(TAG, "feels like    : " + c.feelsLike + " °C");
+        Log.d(TAG, "humidity      : " + c.humidity + " %");
+        Log.d(TAG, "wind speed    : " + c.windSpeed + " km/h");
+        Log.d(TAG, "precipitation : " + c.precipitation + " mm");
+        Log.d(TAG, "weather code  : " + c.weatherCode);
+        Log.d(TAG, "is_day        : " + c.isDay + " (" + (c.isDay == 1 ? "day" : "night") + ")");
+        Log.d(TAG, "---------------------------");
     }
 
     /** Server answered, but refused the request. */
@@ -107,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (errorBody != null) {
             try {
-                body = errorBody.string();       // readable exactly once
+                body = errorBody.string();
             } catch (IOException e) {
                 body = "<unreadable>";
             }
@@ -119,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
         try {
             parsed = new Gson().fromJson(body, ApiError.class);
         } catch (JsonSyntaxException ignored) {
-            // body wasn't JSON (captive portal, HTML page, ...)
         }
 
         if (parsed != null && parsed.reason != null) {
