@@ -46,6 +46,7 @@ import com.google.android.gms.location.LocationCallback;   // Step 44
 import com.google.android.gms.location.LocationRequest;    // Step 44
 import com.google.android.gms.location.LocationResult;     // Step 44
 import com.google.android.gms.location.Priority;           // Step 44
+import android.os.Handler;                                  // Step 45
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
+    private boolean locationResolved = false;                // Step 45: did GPS answer?
 
     // Step 43: permission dialog result comes back here
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
@@ -92,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
                             useDeviceLocation();                     // Step 44
                         } else {
                             Log.d("LOCATION", "Denied — staying on default city");   // Step 45
-                            fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
+                            useFallbackLocation("permission denied");                 // Step 45
                         }
                     });
 
@@ -142,22 +144,40 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     /** Step 44: get GPS coordinates, or fall back to the default city. */
+    /** Step 44-45: get GPS coordinates, with a timeout and a fallback city. */
     private void useDeviceLocation() {
+
+        locationResolved = false;                                          // Step 45
+
+        // Step 45: watchdog — if GPS stays silent, fall back after 15 s
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            if (!locationResolved) {
+                Log.w("LOCATION", "GPS timed out after 15 s");             // Step 45
+                useFallbackLocation("gps timeout");
+            }
+        }, 15_000L);
 
         locationHelper.requestLocation(new LocationHelper.Callback() {
 
             @Override
             public void onLocation(double lat, double lon) {
-                Log.d("LOCATION", "GPS: " + lat + ", " + lon);       // Step 44
-                fetchCurrentWeather(lat, lon);                        // Step 48 target
+                locationResolved = true;                                   // Step 45
+                Log.d("LOCATION", "GPS: " + lat + ", " + lon);             // Step 44
+                fetchCurrentWeather(lat, lon);                             // Step 48 target
             }
 
             @Override
             public void onError(String reason) {
-                Log.e("LOCATION", "Unavailable: " + reason);          // Step 45
-                fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);        // fallback
+                locationResolved = true;                                   // Step 45
+                useFallbackLocation(reason);                               // Step 45
             }
         });
+    }
+    /** Step 45: single safety net for every "no location" case. */
+    private void useFallbackLocation(String reason) {
+
+        Log.w("LOCATION", "Using default city — " + reason);
+        fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
     }
     /** Step 26 — send request off the main thread. */
     private void fetchCurrentWeather(double lat, double lon) {
