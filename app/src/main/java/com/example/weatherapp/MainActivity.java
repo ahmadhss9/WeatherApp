@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
     // Step 30 — views updated with live data
     private TextView tvTemperature;
+    private TextView tvHumidity;                 // Step 31
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         tvTemperature = findViewById(R.id.tvTemperature);   // Step 30
+        tvHumidity = findViewById(R.id.tvHumidity);   // Step 31
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -139,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
         WeatherResponse.CurrentWeather c = currentWeather.current;
 
         tvTemperature.setText(Math.round(c.temperature) + "°");
+        tvHumidity.setText(c.humidity + "%");      // Step 31
     }
 
     /** Step 28 — server refused (HTTP 4xx/5xx); read its reason. */
