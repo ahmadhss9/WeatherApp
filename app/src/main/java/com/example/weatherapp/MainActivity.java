@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvHumidity;                 // Step 31
     private TextView tvFeelsLike;                // Step 32
     private TextView tvWindSpeed;                // Step 33
+    private TextView tvPrecipitation;            // Step 34
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.tvHumidity);   // Step 31
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
-
+        tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -149,6 +150,7 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity.setText(c.humidity + "%");      // Step 31
         tvFeelsLike.setText("Feels like " + Math.round(c.feelsLike) + "°");   // Step 32
         tvWindSpeed.setText(String.format(Locale.US, "%.1f km/h", c.windSpeed));   // Step 33
+        tvPrecipitation.setText(String.format(Locale.US, "%.1f mm", c.precipitation));   // Step 34
 
     }
 
