@@ -76,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
     private boolean locationResolved = false;                // Step 45: did GPS answer?
-    private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
+    private com.google.android.material.button.MaterialButton btnRefresh;   // Step 49    private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
     private double lastLon = DEFAULT_LON;
 
 
@@ -114,6 +114,8 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.tvHumidity);   // Step 31
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
         tvLocation = findViewById(R.id.tvLocation);  // Step 47
+        btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
+        btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
         tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
         tvCondition = findViewById(R.id.tvCondition); //step 35
@@ -188,6 +190,19 @@ public class MainActivity extends AppCompatActivity {
         fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
         showCity(DEFAULT_LAT, DEFAULT_LON);          // Step 47: label the fallback city
     }
+    /** Step 49: re-detect location, or re-fetch the last coordinates. */
+    private void refreshWeather() {
+
+        Log.d("LOCATION", "Refresh pressed");                // Step 49
+        btnRefresh.setEnabled(false);                        // Step 49: block double taps
+
+        if (locationHelper.hasPermission()) {
+            useDeviceLocation();                             // Step 49: fresh GPS + refetch
+        } else {
+            fetchCurrentWeather(lastLat, lastLon);           // Step 48 coords
+            showCity(lastLat, lastLon);                      // keep header accurate
+        }
+    }
     /** Step 47: geocode the coordinates and write the city on screen. */
     private void showCity(double lat, double lon) {
 
@@ -235,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 27 — validate, store, then draw. */
     private void handleSuccess(WeatherResponse weather) {
+        btnRefresh.setEnabled(true);
 
         if (weather == null) {
             Log.e(TAG, "Body was empty");
@@ -300,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 28 — server refused (HTTP 4xx/5xx); read its reason. */
     private void handleHttpError(int code, ResponseBody errorBody) {
+        btnRefresh.setEnabled(true); // Step 49
 
         String body = "no error body";
 
@@ -335,6 +352,8 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 28 — never reached the server. */
     private void handleNetworkFailure(Throwable t) {
+
+        btnRefresh.setEnabled(true); // Step 49
 
         if (t instanceof UnknownHostException) {
             Log.e(TAG, "No internet or DNS failure", t);
