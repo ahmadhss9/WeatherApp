@@ -157,10 +157,15 @@ public class MainActivity extends AppCompatActivity {
         tvTemperature.setText(Math.round(c.temperature) + "°");
         tvHumidity.setText(c.humidity + "%");      // Step 31
         tvFeelsLike.setText("Feels like " + Math.round(c.feelsLike) + "°");   // Step 32
+
         tvCondition.setText(WeatherCodeMapper.describe(c.weatherCode));   // Step 35
         tvWindSpeed.setText(String.format(Locale.US, "%.1f km/h", c.windSpeed));   // Step 33
         tvPrecipitation.setText(String.format(Locale.US, "%.1f mm", c.precipitation));   // Step 34
 
+
+
+        ivCurrentWeather.setImageResource(                            // Step 36: code -> icon
+                WeatherCodeIconMapper.iconFor(c.weatherCode, c.isDay == 1));
     }
 
 
