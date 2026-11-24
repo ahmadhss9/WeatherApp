@@ -30,6 +30,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import java.util.Locale;
+import com.example.weatherapp.util.WeatherCodeMapper; //step 35
 
 public class MainActivity extends AppCompatActivity {
 
@@ -50,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvFeelsLike;                // Step 32
     private TextView tvWindSpeed;                // Step 33
     private TextView tvPrecipitation;            // Step 34
+    private TextView tvCondition;   //step 35
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
         tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
+        tvCondition = findViewById(R.id.tvCondition); //step 35
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -149,10 +153,12 @@ public class MainActivity extends AppCompatActivity {
         tvTemperature.setText(Math.round(c.temperature) + "°");
         tvHumidity.setText(c.humidity + "%");      // Step 31
         tvFeelsLike.setText("Feels like " + Math.round(c.feelsLike) + "°");   // Step 32
+        tvCondition.setText(WeatherCodeMapper.describe(c.weatherCode));   // Step 35
         tvWindSpeed.setText(String.format(Locale.US, "%.1f km/h", c.windSpeed));   // Step 33
         tvPrecipitation.setText(String.format(Locale.US, "%.1f mm", c.precipitation));   // Step 34
 
     }
+
 
     /** Step 28 — server refused (HTTP 4xx/5xx); read its reason. */
     private void handleHttpError(int code, ResponseBody errorBody) {
