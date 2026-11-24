@@ -55,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvPrecipitation;            // Step 34
     private TextView tvCondition;                 //step 35
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
+    private ImageView ivHeaderWeather;               // Step 40: small header icon
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
         tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
         tvCondition = findViewById(R.id.tvCondition); //step 35
         ivCurrentWeather = findViewById(R.id.ivCurrentWeather);   // Step 36: find icon view
+        ivHeaderWeather = findViewById(R.id.ivHeaderWeather);   // Step 40: find header icon
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -164,8 +166,14 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        ivCurrentWeather.setImageResource(                            // Step 36: code -> icon
-                WeatherCodeIconMapper.iconFor(95, false));   // test: strom
+//        ivCurrentWeather.setImageResource(                            // Step 36: code -> icon
+//                WeatherCodeIconMapper.iconFor(95, false));   // test: strom
+
+        int icon = WeatherCodeIconMapper.iconFor(c.weatherCode, c.isDay == 1);   // Step 40
+
+        ivCurrentWeather.setImageResource(icon);        // Step 40: big card icon
+        ivHeaderWeather.setImageResource(icon);         // Step 40: header icon
+
     }
 
 
