@@ -48,6 +48,7 @@ import com.google.android.gms.location.LocationResult;     // Step 44
 import com.google.android.gms.location.Priority;           // Step 44
 import android.os.Handler;                                  // Step 45
 
+
 public class MainActivity extends AppCompatActivity {
 
     // Step 26 — Logcat filter name
@@ -74,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
     private boolean locationResolved = false;                // Step 45: did GPS answer?
+
+
 
     // Step 43: permission dialog result comes back here
     private final ActivityResultLauncher<String[]> locationPermissionLauncher =
@@ -163,7 +166,12 @@ public class MainActivity extends AppCompatActivity {
             public void onLocation(double lat, double lon) {
                 locationResolved = true;                                   // Step 45
                 Log.d("LOCATION", "GPS: " + lat + ", " + lon);             // Step 44
+
                 fetchCurrentWeather(lat, lon);                             // Step 48 target
+
+                // Step 46: coordinates -> readable city name
+                locationHelper.resolveCityName(lat, lon, city ->
+                        Log.d("LOCATION", "City: " + city));
             }
 
             @Override

@@ -16,7 +16,18 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 
+import android.location.Address;                                 // Step 46
+import android.location.Geocoder;                                // Step 46
+import java.io.IOException;                                      // Step 46
+import java.util.List;                                           // Step 46
+import java.util.Locale;                                         // Step 46
 /** Step 41-45: everything about finding the device location in one place. */
+private static final String TAG = "LOCATION";                // Step 46
+
+/** Step 46: city name answer (null when unresolved). */
+public interface CityCallback {
+    void onCity(String cityName);
+}
 public class LocationHelper {
 
     public interface Callback {                 // Step 41: how we deliver the answer
@@ -81,6 +92,45 @@ public class LocationHelper {
                 }
             }
         };
+        /** Step 46: coordinates -> "City, Country" (runs off the main thread). */
+        public void resolveCityName(double lat, double lon, CityCallback callback) {
+
+            if (!Geocoder.isPresent()) {
+                Log.w(TAG, "Geocoder not available on this device");
+                callback.onCity(null);
+                return;
+            }
+
+            new Thread(() -> {
+
+                String result = null;
+
+                try {
+                    Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+                    List<Address> addresses = geocoder.getFromLocation(lat, lon, 1);   // blocking
+
+                    if (addresses != null && !addresses.isEmpty()) {
+                        Address a = addresses.get(0);
+
+                        String city = a.getLocality();
+                        if (city == null) city = a.getSubAdminArea();
+                        if (city == null) city = a.getAdminArea();
+
+                        String country = a.getCountryName();
+
+                        if (city != null) {
+                            result = (country != null) ? city + ", " + country : city;
+                        }
+                    }
+                } catch (IOException | IllegalArgumentException e) {
+                    Log.w(TAG, "Reverse geocoding failed: " + e.getMessage());
+                }
+
+                String finalResult = result;
+                new Handler(Looper.getMainLooper()).post(() -> callback.onCity(finalResult));
+
+            }).start();
+        }
 
         client.requestLocationUpdates(request, listener, Looper.getMainLooper())
                 .addOnFailureListener(e -> callback.onError("request failed: " + e.getMessage()));
