@@ -48,12 +48,12 @@
             </LinearLayout>
 
             <ImageView
+                android:id="@+id/ivHeaderWeather"
                 android:layout_width="27dp"
                 android:layout_height="27dp"
                 android:src="@drawable/day"
                 android:contentDescription="Weather"
-                android:scaleType="fitCenter" />
-
+                android:scaleType="fitCenter" /><!-- Step 40  id headerweather-->
         </LinearLayout>
 
         <!-- Main Weather Card -->
