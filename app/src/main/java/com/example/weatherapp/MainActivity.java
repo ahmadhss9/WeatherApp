@@ -30,9 +30,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import java.util.Locale;
-import com.example.weatherapp.util.WeatherCodeMapper; //step 35
+import com.example.weatherapp.utils.WeatherCodeMapper; //step 35
 import android.widget.ImageView;                    // Step 36
-import com.example.weatherapp.util.WeatherCodeIconMapper;   // Step 36
+import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
 
 public class MainActivity extends AppCompatActivity {
 
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         ivCurrentWeather.setImageResource(                            // Step 36: code -> icon
-                WeatherCodeIconMapper.iconFor(c.weatherCode, c.isDay == 1));
+                WeatherCodeIconMapper.iconFor(63, true));   // test: rain
     }
 
 

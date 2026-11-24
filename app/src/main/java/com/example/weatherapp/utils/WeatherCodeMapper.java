@@ -1,4 +1,4 @@
-package com.example.weatherapp.util;
+package com.example.weatherapp.utils;
 
 /** Step 35: WMO weather code -> human readable text. */
 public final class WeatherCodeMapper {
