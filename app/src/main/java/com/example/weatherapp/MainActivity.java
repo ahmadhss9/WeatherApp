@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         ivCurrentWeather.setImageResource(                            // Step 36: code -> icon
-                WeatherCodeIconMapper.iconFor(63, true));   // test: rain
+                WeatherCodeIconMapper.iconFor(95, false));   // test: strom
     }
 
 

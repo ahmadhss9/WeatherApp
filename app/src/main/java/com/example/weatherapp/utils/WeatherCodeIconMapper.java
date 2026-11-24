@@ -37,6 +37,20 @@ public class WeatherCodeIconMapper {
             case 81: return R.drawable.rainy_5;   // showers
             case 82: return R.drawable.rainy_7;   // violent showers
 
+
+            // ---- Step 39: snow ----
+            case 71: return R.drawable.snowy_1;   // light snow
+            case 73: return R.drawable.snowy_2;   // snow
+            case 75: return R.drawable.snowy_4;   // heavy snow
+            case 77: return R.drawable.snowy_3;   // snow grains
+            case 85: return R.drawable.snowy_5;   // light snow showers
+            case 86: return R.drawable.snowy_6;   // heavy snow showers
+
+            // ---- Step 39: storm ----
+            case 95: return R.drawable.thunder;   // thunderstorm
+            case 96: return R.drawable.thunder;   // thunderstorm + slight hail
+            case 99: return R.drawable.thunder;   // thunderstorm + heavy hail
+
             case 45:                                        // Step 37: fog
             case 48:
                 return R.drawable.cloudy;
