@@ -33,6 +33,7 @@ import java.util.Locale;
 import com.example.weatherapp.utils.WeatherCodeMapper; //step 35
 import android.widget.ImageView;                    // Step 36
 import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
+import com.example.weatherapp.util.LocationHelper;   // Step 41
 
 public class MainActivity extends AppCompatActivity {
 
@@ -56,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvCondition;                 //step 35
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
+    private LocationHelper locationHelper;               // Step 41: location helper
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +73,10 @@ public class MainActivity extends AppCompatActivity {
         tvCondition = findViewById(R.id.tvCondition); //step 35
         ivCurrentWeather = findViewById(R.id.ivCurrentWeather);   // Step 36: find icon view
         ivHeaderWeather = findViewById(R.id.ivHeaderWeather);   // Step 40: find header icon
+
+        locationHelper = new LocationHelper(this);       // Step 41: create helper
+        Log.d("LOCATION", "helper ready, permission="    // Step 41: sanity check
+                + locationHelper.hasPermission());
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
