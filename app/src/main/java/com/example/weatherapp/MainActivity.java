@@ -76,9 +76,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
     private boolean locationResolved = false;                // Step 45: did GPS answer?
-    private com.google.android.material.button.MaterialButton btnRefresh;   // Step 49    private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
-    private double lastLon = DEFAULT_LON;
 
+    private boolean hadPermission;              // Step 50: permission state at last check
+    private com.google.android.material.button.MaterialButton btnRefresh;   // Step 49: refresh button
+    private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
+    private double lastLon = DEFAULT_LON;
 
 
     // Step 43: permission dialog result comes back here
@@ -99,7 +101,14 @@ public class MainActivity extends AppCompatActivity {
                             Log.d("LOCATION", "Permission granted — GPS path (step 44)");
                             useDeviceLocation();                     // Step 44
                         } else {
-                            Log.d("LOCATION", "Denied — staying on default city");   // Step 45
+                            // Step 50: "denied once" vs "never ask again"
+                            boolean canAskAgain = shouldShowRequestPermissionRationale(
+                                    Manifest.permission.ACCESS_FINE_LOCATION);
+
+                            Log.w("LOCATION", canAskAgain
+                                    ? "Denied — will ask again next launch"
+                                    : "Denied permanently — enable in Settings");    // Step 50
+
                             useFallbackLocation("permission denied");                 // Step 45
                         }
                     });
@@ -121,10 +130,11 @@ public class MainActivity extends AppCompatActivity {
         tvCondition = findViewById(R.id.tvCondition); //step 35
         ivCurrentWeather = findViewById(R.id.ivCurrentWeather);   // Step 36: find icon view
         ivHeaderWeather = findViewById(R.id.ivHeaderWeather);   // Step 40: find header icon
-
         locationHelper = new LocationHelper(this);       // Step 41: create helper
         Log.d("LOCATION", "helper ready, permission="    // Step 41: sanity check
                 + locationHelper.hasPermission());
+
+        hadPermission = locationHelper.hasPermission();   // Step 50: remember current state
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -136,6 +146,24 @@ public class MainActivity extends AppCompatActivity {
 //       fetchCurrentWeather(31.418, 73.079);   // (removed this)Faisalabad for now (GPS later: step 48)
         loadWeather();                            // Step 42: check permission first
     }
+
+    /** Step 50: notice permission changes made in Settings while we were paused. */
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        boolean now = locationHelper.hasPermission();      // Step 50
+
+        if (now && !hadPermission) {
+            Log.d("LOCATION", "Permission granted while paused — reloading");   // Step 50
+            loadWeather();
+        } else if (!now && hadPermission) {
+            Log.d("LOCATION", "Permission revoked while paused");               // Step 50
+        }
+
+        hadPermission = now;                               // Step 50
+    }
+
     /** Step 42: decide where the weather comes from. */
     /** Step 42-43: check permission, ask if missing, then load. */
     private void loadWeather() { //replaced code with step 42
@@ -250,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 27 — validate, store, then draw. */
     private void handleSuccess(WeatherResponse weather) {
-        btnRefresh.setEnabled(true);
+        btnRefresh.setEnabled(true);          // Step 49: re-arm the refresh button
 
         if (weather == null) {
             Log.e(TAG, "Body was empty");
