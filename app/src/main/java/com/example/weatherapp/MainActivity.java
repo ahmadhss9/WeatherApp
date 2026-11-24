@@ -76,6 +76,8 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
     private boolean locationResolved = false;                // Step 45: did GPS answer?
+    private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
+    private double lastLon = DEFAULT_LON;
 
 
 
@@ -200,6 +202,8 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 26 — send request off the main thread. */
     private void fetchCurrentWeather(double lat, double lon) {
+        lastLat = lat;                               // Step 48: remember for refresh
+        lastLon = lon;
 
         WeatherApi api = RetrofitClient.getApi();
 
