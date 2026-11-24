@@ -31,6 +31,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import java.util.Locale;
 import com.example.weatherapp.util.WeatherCodeMapper; //step 35
+import android.widget.ImageView;                    // Step 36
+import com.example.weatherapp.util.WeatherCodeIconMapper;   // Step 36
 
 public class MainActivity extends AppCompatActivity {
 
@@ -51,7 +53,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvFeelsLike;                // Step 32
     private TextView tvWindSpeed;                // Step 33
     private TextView tvPrecipitation;            // Step 34
-    private TextView tvCondition;   //step 35
+    private TextView tvCondition;                 //step 35
+    private ImageView ivCurrentWeather;              // Step 36: main weather icon
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
         tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
         tvCondition = findViewById(R.id.tvCondition); //step 35
+        ivCurrentWeather = findViewById(R.id.ivCurrentWeather);   // Step 36: find icon view
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
