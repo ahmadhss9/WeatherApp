@@ -71,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvWindSpeed;                // Step 33
     private TextView tvPrecipitation;            // Step 34
     private TextView tvCondition;                 //step 35
+    private TextView tvLocation;                     // Step 47: detected city label
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
@@ -110,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
         tvTemperature = findViewById(R.id.tvTemperature);   // Step 30
         tvHumidity = findViewById(R.id.tvHumidity);   // Step 31
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
+        tvLocation = findViewById(R.id.tvLocation);  // Step 47
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
         tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
         tvCondition = findViewById(R.id.tvCondition); //step 35
@@ -167,13 +169,9 @@ public class MainActivity extends AppCompatActivity {
                 locationResolved = true;                                   // Step 45
                 Log.d("LOCATION", "GPS: " + lat + ", " + lon);             // Step 44
 
-                fetchCurrentWeather(lat, lon);                             // Step 48 target
-
-                // Step 46: coordinates -> readable city name
-                locationHelper.resolveCityName(lat, lon, city ->
-                        Log.d("LOCATION", "City: " + city));
+                fetchCurrentWeather(lat, lon);                             // Step 48: weather at GPS coords
+                showCity(lat, lon);                                        // Steps 46-47: city label on screen
             }
-
             @Override
             public void onError(String reason) {
                 locationResolved = true;                                   // Step 45
@@ -186,7 +184,20 @@ public class MainActivity extends AppCompatActivity {
 
         Log.w("LOCATION", "Using default city — " + reason);
         fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
+        showCity(DEFAULT_LAT, DEFAULT_LON);          // Step 47: label the fallback city
     }
+    /** Step 47: geocode the coordinates and write the city on screen. */
+    private void showCity(double lat, double lon) {
+
+        locationHelper.resolveCityName(lat, lon, city -> {
+
+            Log.d("LOCATION", "City: " + city);                          // Step 46
+
+            tvLocation.setText(city != null ? city : "Unknown location"); // Step 47
+        });
+    }
+
+
     /** Step 26 — send request off the main thread. */
     private void fetchCurrentWeather(double lat, double lon) {
 
