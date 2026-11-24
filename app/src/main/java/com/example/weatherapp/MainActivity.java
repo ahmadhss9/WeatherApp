@@ -35,6 +35,10 @@ import android.widget.ImageView;                    // Step 36
 import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
 import com.example.weatherapp.util.LocationHelper;   // Step 41
 
+import android.Manifest;                                                        // Step 43
+import androidx.activity.result.ActivityResultLauncher;                         // Step 43
+import androidx.activity.result.contract.ActivityResultContracts;               // Step 43
+
 public class MainActivity extends AppCompatActivity {
 
     // Step 26 — Logcat filter name
@@ -60,6 +64,30 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
+
+    // Step 43: permission dialog result comes back here
+    private final ActivityResultLauncher<String[]> locationPermissionLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.RequestMultiplePermissions(),
+                    result -> {
+
+                        Boolean fine = result.get(Manifest.permission.ACCESS_FINE_LOCATION);
+                        Boolean coarse = result.get(Manifest.permission.ACCESS_COARSE_LOCATION);
+
+                        boolean granted = Boolean.TRUE.equals(fine)
+                                || Boolean.TRUE.equals(coarse);
+
+                        Log.d("LOCATION", "Permission result: " + result);   // Step 43
+
+                        if (granted) {
+                            Log.d("LOCATION", "Granted — GPS coordinates in step 44");
+                            // Step 44 will request the location here.
+                            fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
+                        } else {
+                            Log.d("LOCATION", "Denied — staying on default city");   // Step 45
+                            fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
+                        }
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,18 +119,21 @@ public class MainActivity extends AppCompatActivity {
         loadWeather();                            // Step 42: check permission first
     }
     /** Step 42: decide where the weather comes from. */
-    private void loadWeather() {
+    /** Step 42-43: check permission, ask if missing, then load. */
+    private void loadWeather() { //replaced code with step 42
 
         if (locationHelper.hasPermission()) {
-            Log.d("LOCATION", "Permission granted — GPS path (step 44)");   // Step 42
-        } else {
-            Log.d("LOCATION", "No permission — using default city");        // Step 42
+            Log.d("LOCATION", "Permission granted — GPS path (step 44)");
+            fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);   // step 44 replaces
+            return;
         }
 
-        // Step 44 will replace this with real GPS coordinates.
-        fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
+        Log.d("LOCATION", "No permission — asking the user");   // Step 43
+        locationPermissionLauncher.launch(new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,       // Step 43
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        });
     }
-
     /** Step 26 — send request off the main thread. */
     private void fetchCurrentWeather(double lat, double lon) {
 
