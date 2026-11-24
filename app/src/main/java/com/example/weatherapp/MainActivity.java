@@ -29,6 +29,7 @@ import okhttp3.ResponseBody;                     // Step 28
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -47,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvTemperature;
     private TextView tvHumidity;                 // Step 31
     private TextView tvFeelsLike;                // Step 32
+    private TextView tvWindSpeed;                // Step 33
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         tvTemperature = findViewById(R.id.tvTemperature);   // Step 30
         tvHumidity = findViewById(R.id.tvHumidity);   // Step 31
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
+        tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -145,6 +148,7 @@ public class MainActivity extends AppCompatActivity {
         tvTemperature.setText(Math.round(c.temperature) + "°");
         tvHumidity.setText(c.humidity + "%");      // Step 31
         tvFeelsLike.setText("Feels like " + Math.round(c.feelsLike) + "°");   // Step 32
+        tvWindSpeed.setText(String.format(Locale.US, "%.1f km/h", c.windSpeed));   // Step 33
 
     }
 
