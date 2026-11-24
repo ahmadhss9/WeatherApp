@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_FIELDS =
             "temperature_2m,relative_humidity_2m,apparent_temperature,"
                     + "is_day,precipitation,weather_code,wind_speed_10m";
+    private static final double DEFAULT_LAT = 31.418;    // Step 42: fallback city
+    private static final double DEFAULT_LON = 73.079;
 
     // Step 27 — parsed response; all views read from here
     private WeatherResponse currentWeather;
@@ -84,7 +86,21 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        fetchCurrentWeather(31.418, 73.079);   // Faisalabad for now (GPS later: step 48)
+//
+//       fetchCurrentWeather(31.418, 73.079);   // (removed this)Faisalabad for now (GPS later: step 48)
+        loadWeather();                            // Step 42: check permission first
+    }
+    /** Step 42: decide where the weather comes from. */
+    private void loadWeather() {
+
+        if (locationHelper.hasPermission()) {
+            Log.d("LOCATION", "Permission granted — GPS path (step 44)");   // Step 42
+        } else {
+            Log.d("LOCATION", "No permission — using default city");        // Step 42
+        }
+
+        // Step 44 will replace this with real GPS coordinates.
+        fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
     }
 
     /** Step 26 — send request off the main thread. */
