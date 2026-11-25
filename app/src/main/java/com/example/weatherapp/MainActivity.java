@@ -112,6 +112,10 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvLocation;                     // Step 47: detected city label
     private TextView tvHighLow;                      // Step 70: today's high / low
     private TextView tvError;                        // Step 72: error banner
+    private LinearLayout llError;                    // Step 73: banner container
+    private com.google.android.material.button.MaterialButton btnRetry;   // Step 73: retry button
+    private String lastSearchQuery;                  // Step 73: what to retry
+    private boolean lastFailedSearch;                // Step 73: which op failed
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
@@ -177,6 +181,9 @@ public class MainActivity extends AppCompatActivity {
         tvHighLow = findViewById(R.id.tvHighLow);    // Step 70
         progressBar = findViewById(R.id.progressBar);// Step 71
         tvError = findViewById(R.id.tvError);        // Step 72
+        llError = findViewById(R.id.llError);        // Step 73
+        btnRetry = findViewById(R.id.btnRetry);      // Step 73
+        btnRetry.setOnClickListener(v -> retryLastRequest());   // Step 73
         btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
         btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
@@ -345,6 +352,9 @@ public class MainActivity extends AppCompatActivity {
         hideSearchResults();                                           // Step 56: clear old list
         Log.d("GEOCODE", "Searching: " + query);
 
+        lastSearchQuery = query;                                       // Step 73: remember for retry
+        lastFailedSearch = false;                                      // Step 73
+
         Call<GeocodingResponse> call =
                 RetrofitClient.getGeocodingApi()
                         .searchCities(query, 5, "en", "json");         // Step 55
@@ -361,6 +371,9 @@ public class MainActivity extends AppCompatActivity {
 
                 if (!response.isSuccessful()) {
                     Log.e("GEOCODE", "HTTP " + response.code());       // step 72 shows it
+                    lastFailedSearch = true;                           // Step 73
+                    showError("City search failed (HTTP " + response.code()
+                            + "). Tap Retry.");                        // Step 72-73
                     return;
                 }
 
@@ -386,6 +399,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<GeocodingResponse> call, Throwable t) {
                 endRequest();                                          // Step 71
                 Log.e("GEOCODE", "Search failed: " + t);               // Step 74 offline case
+                lastFailedSearch = true;                               // Step 73
                 showError("City search failed — check your internet and try again.");   // Step 72
             }
         });
@@ -531,6 +545,7 @@ public class MainActivity extends AppCompatActivity {
     private void fetchCurrentWeather(double lat, double lon) {
         lastLat = lat;                               // Step 48: remember for refresh
         lastLon = lon;
+        lastFailedSearch = false;                    // Step 73: weather is the latest action now
 
         WeatherApi api = RetrofitClient.getApi();
 
@@ -578,13 +593,25 @@ public class MainActivity extends AppCompatActivity {
     private void showError(String message) {
 
         tvError.setText(message);        // Step 72
-        tvError.setVisibility(View.VISIBLE);
+        llError.setVisibility(View.VISIBLE);   // Step 73
     }
 
     /** Step 72: hide the error banner. */
     private void hideError() {
 
-        tvError.setVisibility(View.GONE);   // Step 72
+        llError.setVisibility(View.GONE);       // Step 72-73
+    }
+
+    /** Step 73: repeat whichever request failed last. */
+    private void retryLastRequest() {
+
+        Log.d("RETRY", "Retry tapped, failedSearch=" + lastFailedSearch);   // Step 73
+
+        if (lastFailedSearch && lastSearchQuery != null) {
+            performSearch(lastSearchQuery);      // Step 73: search again
+        } else {
+            refreshWeather();                    // Step 73: weather again
+        }
     }
 
     /** Step 71: one request finished — hide the spinner when none are left. */

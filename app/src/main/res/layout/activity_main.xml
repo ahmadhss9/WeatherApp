@@ -120,17 +120,40 @@
                 app:cornerRadius="14dp" />
         </LinearLayout>
 
-        <!-- Step 72: shows API / network error messages -->
-        <TextView
-            android:id="@+id/tvError"
+        <!-- Steps 72-73: error banner with a retry button -->
+        <LinearLayout
+            android:id="@+id/llError"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:background="@drawable/bg_error"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:padding="12dp"
-            android:textColor="#B3261E"
-            android:textSize="13sp"
-            android:visibility="gone" />
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvError"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="#B3261E"
+                android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minWidth="0dp"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:text="Retry"
+                android:textSize="12sp"
+                app:cornerRadius="14dp" />
+        </LinearLayout>
 
         <!-- Step 56: city search results (hidden until a search returns) -->
         <LinearLayout
