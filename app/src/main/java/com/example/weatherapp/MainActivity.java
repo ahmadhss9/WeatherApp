@@ -36,6 +36,7 @@ import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
 import com.example.weatherapp.utils.LocationHelper;   // Step 41
 
 import android.Manifest;                                                        // Step 43
+import android.content.SharedPreferences;                                       // Step 60
 import androidx.activity.result.ActivityResultLauncher;                         // Step 43
 import androidx.activity.result.contract.ActivityResultContracts;               // Step 43
 import android.annotation.SuppressLint;                    // Step 44
@@ -178,7 +179,11 @@ public class MainActivity extends AppCompatActivity {
 
 //
 //       fetchCurrentWeather(31.418, 73.079);   // (removed this)Faisalabad for now (GPS later: step 48)
-        loadWeather();                            // Step 42: check permission first
+        if (restoreSavedCity()) {                 // Step 60: saved city wins
+            loadSelectedCityWeather();            // Step 60: weather for the saved city
+        } else {
+            loadWeather();                        // Step 42: check permission first
+        }
     }
 
     /** Step 50: notice permission changes made in Settings while we were paused. */
@@ -190,7 +195,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (now && !hadPermission) {
             Log.d("LOCATION", "Permission granted while paused — reloading");   // Step 50
-            loadWeather();
+
+            if (selectedCity == null) {
+                loadWeather();                          // no chosen city: go GPS
+            } else {
+                Log.d("GEOCODE", "Keeping chosen city: " + selectedCity.label());  // Step 60
+                loadSelectedCityWeather();              // a chosen city wins over GPS
+            }
         } else if (!now && hadPermission) {
             Log.d("LOCATION", "Permission revoked while paused");               // Step 50
         }
@@ -413,6 +424,34 @@ public class MainActivity extends AppCompatActivity {
                 .apply();                                            // Step 59: async write
 
         Log.d("GEOCODE", "Saved city: " + city.label());              // Step 59
+    }
+
+    /** Step 60: rebuild the saved city on launch (true = we have one). */
+    private boolean restoreSavedCity() {
+
+        SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);   // Step 60
+
+        String label = prefs.getString(KEY_CITY_LABEL, null);                  // Step 60
+
+        if (label == null
+                || !prefs.contains(KEY_CITY_LAT)
+                || !prefs.contains(KEY_CITY_LON)) {
+            Log.d("GEOCODE", "No saved city");                                 // Step 60
+            return false;
+        }
+
+        GeocodingResponse.Result city = new GeocodingResponse.Result();        // Step 60
+        city.name = label;                                                     // "Tokyo, Tokyo, Japan"
+        city.latitude = Double.longBitsToDouble(prefs.getLong(KEY_CITY_LAT, 0L));   // Step 60
+        city.longitude = Double.longBitsToDouble(prefs.getLong(KEY_CITY_LON, 0L));  // Step 60
+
+        selectedCity = city;                                                   // Step 60
+
+        tvLocation.setText(label);                                             // Step 60: header right away
+        etCitySearch.setText(label);                                           // Step 60: field too
+
+        Log.d("GEOCODE", "Restored city: " + label);                           // Step 60
+        return true;
     }
 
     /** Step 57: dismiss the soft keyboard after a selection. */
