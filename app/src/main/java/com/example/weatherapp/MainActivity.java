@@ -50,6 +50,8 @@ import android.os.Handler;                                  // Step 45
 import android.widget.EditText;                                          // Step 54
 import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
 import com.google.android.material.textfield.TextInputEditText;          // Step 54
+import android.view.inputmethod.EditorInfo;                        // Step 55
+import com.example.weatherapp.models.GeocodingResponse;            // Step 55
 
 
 public class MainActivity extends AppCompatActivity {
@@ -146,6 +148,14 @@ public class MainActivity extends AppCompatActivity {
         etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
         btnSearch.setOnClickListener(v -> onSearchClicked());        // Step 54
 
+        etCitySearch.setOnEditorActionListener((v, actionId, event) -> {   // Step 55
+            if (actionId == EditorInfo.IME_ACTION_SEARCH) {                // keyboard search key
+                onSearchClicked();
+                return true;
+            }
+            return false;
+        });
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -241,13 +251,66 @@ public class MainActivity extends AppCompatActivity {
             showCity(lastLat, lastLon);                      // keep header accurate
         }
     }
-    /** Step 54: placeholder until step 55 sends the request. */
+    /** Step 54-55: read the input and start a search. */
     private void onSearchClicked() {
 
         String query = etCitySearch.getText() == null
                 ? "" : etCitySearch.getText().toString().trim();      // Step 54
 
-        Log.d("GEOCODE", "Search tapped: " + query);                  // Step 54
+        performSearch(query);                                         // Step 55
+    }
+
+    /** Step 55: ask the geocoding API for cities matching the typed text. */
+    private void performSearch(String query) {
+
+        if (query.isEmpty()) {
+            Log.w("GEOCODE", "Empty query — nothing to search");       // step 75 adds UI
+            return;
+        }
+
+        btnSearch.setEnabled(false);                                   // Step 55: block double taps
+        Log.d("GEOCODE", "Searching: " + query);
+
+        Call<GeocodingResponse> call =
+                RetrofitClient.getGeocodingApi()
+                        .searchCities(query, 5, "en", "json");         // Step 55
+
+        Log.d("GEOCODE", "Request URL: " + call.request().url());      // Step 55
+
+        call.enqueue(new Callback<GeocodingResponse>() {
+
+            @Override
+            public void onResponse(Call<GeocodingResponse> call,
+                                   Response<GeocodingResponse> response) {
+
+                btnSearch.setEnabled(true);                            // Step 55
+
+                if (!response.isSuccessful()) {
+                    Log.e("GEOCODE", "HTTP " + response.code());       // step 72 shows it
+                    return;
+                }
+
+                GeocodingResponse body = response.body();
+
+                if (body == null || body.results == null || body.results.isEmpty()) {
+                    Log.w("GEOCODE", "No matching city for: " + query); // Step 75 empty state
+                    return;
+                }
+
+                Log.d("GEOCODE", "Matches: " + body.results.size());   // Step 55
+
+                for (GeocodingResponse.Result r : body.results) {
+                    Log.d("GEOCODE", "  " + r.label()
+                            + "  (" + r.latitude + ", " + r.longitude + ")");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GeocodingResponse> call, Throwable t) {
+                btnSearch.setEnabled(true);                            // Step 55
+                Log.e("GEOCODE", "Search failed: " + t);               // Step 74 offline case
+            }
+        });
     }
     /** Step 47: geocode the coordinates and write the city on screen. */
     private void showCity(double lat, double lon) {
