@@ -51,6 +51,7 @@ import android.widget.EditText;                                          // Step
 import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
 import com.google.android.material.textfield.TextInputEditText;          // Step 54
 import android.view.inputmethod.EditorInfo;                        // Step 55
+import android.view.inputmethod.InputMethodManager;                // Step 57
 import android.view.LayoutInflater;                                // Step 56
 import android.view.View;                                          // Step 56
 import android.widget.LinearLayout;                                // Step 56
@@ -94,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
     private com.google.android.material.button.MaterialButton btnSearch;      // Step 54
     private TextInputEditText etCitySearch;                                   // Step 54
     private LinearLayout llSearchResults;                                     // Step 56: results container
+    private GeocodingResponse.Result selectedCity;                            // Step 57: chosen city
 
 
     // Step 43: permission dialog result comes back here
@@ -346,8 +348,7 @@ public class MainActivity extends AppCompatActivity {
             tvCoords.setText(String.format(Locale.US, "%.2f, %.2f",   // Step 56
                     r.latitude, r.longitude));
 
-            row.setOnClickListener(v ->                                 // Step 57 target
-                    Log.d("GEOCODE", "Selected: " + r.label()));
+            row.setOnClickListener(v -> onCitySelected(r));            // Step 57: pick this city
 
             llSearchResults.addView(row);                              // Step 56
         }
@@ -358,6 +359,38 @@ public class MainActivity extends AppCompatActivity {
 
         llSearchResults.removeAllViews();                              // Step 56
         llSearchResults.setVisibility(View.GONE);                      // Step 56
+    }
+
+    /** Step 57: the user tapped one of the matching cities. */
+    private void onCitySelected(GeocodingResponse.Result city) {
+
+        Log.d("GEOCODE", "Selected: " + city.label()
+                + "  (" + city.latitude + ", " + city.longitude + ")");   // Step 57
+
+        selectedCity = city;                                          // Step 57: remember the choice
+
+        hideSearchResults();                                          // Step 57
+        hideKeyboard();                                               // Step 57
+
+        tvLocation.setText(city.label());                             // Step 57: header shows the choice
+        etCitySearch.setText(city.name);                              // Step 57: keep the name, not the region
+        etCitySearch.clearFocus();                                    // Step 57: no cursor blinking
+
+        // Step 58: request weather for this city here.
+    }
+
+    /** Step 57: dismiss the soft keyboard after a selection. */
+    private void hideKeyboard() {
+
+        View focus = getCurrentFocus();                               // Step 57
+        if (focus == null) return;
+
+        InputMethodManager imm =
+                (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);   // Step 57
+
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(focus.getWindowToken(), 0);   // Step 57
+        }
     }
 
     /** Step 47: geocode the coordinates and write the city on screen. */
