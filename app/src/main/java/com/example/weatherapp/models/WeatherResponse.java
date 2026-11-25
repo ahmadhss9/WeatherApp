@@ -67,17 +67,18 @@ public class WeatherResponse {
         @SerializedName("is_day")
         public List<Integer> isDay;                  // 1 = day, 0 = night, per hour
 
-        /** Step 61: how many complete hours we can safely display (0 = unusable). */
+        /** Step 61-65: how many complete hours we can safely display (0 = unusable). */
         public int size() {
-            if (time == null || temperature == null
-                    || weatherCode == null || isDay == null) {
+            if (time == null || temperature == null || weatherCode == null) {
                 return 0;                            // partial block -> show nothing
             }
 
             int n = time.size();
             n = Math.min(n, temperature.size());
             n = Math.min(n, weatherCode.size());
-            n = Math.min(n, isDay.size());
+
+            // Step 65: is_day is optional — hours without it fall back to current.isDay
+            if (isDay != null) n = Math.min(n, isDay.size());
             return n;
         }
     }

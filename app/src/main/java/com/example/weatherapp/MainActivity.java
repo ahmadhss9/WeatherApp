@@ -579,15 +579,29 @@ public class MainActivity extends AppCompatActivity {
 
         int end = Math.min(start + 24, hours);                     // Step 64: at most 24 cells
 
+        // Step 65: fallback for hours whose is_day is missing
+        boolean dayFallback = currentWeather.current != null
+                && currentWeather.current.isDay == 1;
+
         List<HourlyItem> items = new ArrayList<>();                // Step 64
 
         for (int i = start; i < end; i++) {
+
+            boolean isDay = h.isDay != null && i < h.isDay.size()   // Step 65
+                    ? h.isDay.get(i) == 1
+                    : dayFallback;
+
             items.add(new HourlyItem(
                     hourLabel(h.time.get(i), i == start),          // "NOW" / "10 PM"
                     h.temperature.get(i),
                     h.weatherCode.get(i),
-                    h.isDay.get(i) == 1,
+                    isDay,
                     i == start));                                  // Step 64
+
+            if (i == start) {                                      // Step 65: verify the icon choice
+                Log.d(TAG, "First hour icon: " + getResources().getResourceEntryName(
+                        WeatherCodeIconMapper.iconFor(h.weatherCode.get(i), isDay)));
+            }
         }
 
         hourlyAdapter.submitList(items);                           // Step 64
