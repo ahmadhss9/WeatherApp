@@ -12,8 +12,12 @@ public class RetrofitClient {
     private static final String GEOCODING_BASE_URL =     // Step 51: city search host
             "https://geocoding-api.open-meteo.com/";
 
+    private static final String IP_BASE_URL =            // Step 76: IP location host
+            "https://ipwho.is/";
+
     private static Retrofit retrofit;
     private static Retrofit geocodingRetrofit;           // Step 51
+    private static Retrofit ipRetrofit;                  // Step 76
 
     public static WeatherApi getApi() {
 
@@ -40,5 +44,18 @@ public class RetrofitClient {
         }
 
         return geocodingRetrofit.create(GeocodingApi.class);
+    }
+
+    /** Step 76: third client — IP based approximate location. */
+    public static IpLocationApi getIpLocationApi() {
+
+        if (ipRetrofit == null) {
+            ipRetrofit = new Retrofit.Builder()
+                    .baseUrl(IP_BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+
+        return ipRetrofit.create(IpLocationApi.class);
     }
 }

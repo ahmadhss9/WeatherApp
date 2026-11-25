@@ -61,6 +61,7 @@ import android.view.LayoutInflater;                                // Step 56
 import android.view.View;                                          // Step 56
 import android.widget.LinearLayout;                                // Step 56
 import com.example.weatherapp.models.GeocodingResponse;            // Step 55
+import com.example.weatherapp.models.IpLocationResponse;           // Step 76
 import java.util.List;                                             // Step 56
 import androidx.recyclerview.widget.LinearLayoutManager;           // Step 63
 import androidx.recyclerview.widget.RecyclerView;                  // Step 63
@@ -312,12 +313,89 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    /** Step 45: single safety net for every "no location" case. */
+    /** Steps 45+76: no GPS -> try IP location -> only then the hardcoded city. */
     private void useFallbackLocation(String reason) {
 
-        Log.w("LOCATION", "Using default city — " + reason);
+        Log.w("LOCATION", "GPS unavailable — " + reason);       // Step 45
+        fetchIpLocation(reason);                                // Step 76: try IP first
+    }
+
+    /** Step 76: approximate location from the public IP address. */
+    private void fetchIpLocation(String reason) {
+
+        if (!isOnline()) {                                      // Step 74
+            useDefaultCity(reason + " + offline");
+            return;
+        }
+
+        Log.d("LOCATION", "IP fallback started (" + reason + ")");   // Step 76
+        beginRequest();                                              // Step 71: spinner
+
+        Call<IpLocationResponse> call = RetrofitClient.getIpLocationApi().getLocation();
+        Log.d("LOCATION", "IP URL: " + call.request().url());        // Step 76
+
+        call.enqueue(new Callback<IpLocationResponse>() {
+
+            @Override
+            public void onResponse(Call<IpLocationResponse> call,
+                                   Response<IpLocationResponse> response) {
+
+                endRequest();                                        // Step 71
+                IpLocationResponse body = response.body();
+
+                if (!response.isSuccessful() || body == null || !body.success
+                        || (body.latitude == 0.0 && body.longitude == 0.0)) {
+                    Log.w("LOCATION", "IP fallback failed");         // Step 76
+                    useDefaultCity(reason + " + ip failed");
+                    return;
+                }
+
+                String label = ipLabel(body);                        // Step 76
+                Log.d("LOCATION", "IP location: " + label
+                        + " (" + body.latitude + ", " + body.longitude + ")");
+
+                if (label != null) {
+                    tvLocation.setText(label);                       // Step 76: approximate city
+                }
+
+                fetchCurrentWeather(body.latitude, body.longitude);  // Step 76: weather for IP coords
+            }
+
+            @Override
+            public void onFailure(Call<IpLocationResponse> call, Throwable t) {
+                endRequest();                                        // Step 71
+                Log.w("LOCATION", "IP fallback network failure: " + t);
+                useDefaultCity(reason + " + ip error");              // Step 76
+            }
+        });
+    }
+
+    /** Step 76: "Faisalabad Sadar Tehsil, Punjab, Pakistan". */
+    private String ipLabel(IpLocationResponse b) {
+
+        StringBuilder sb = new StringBuilder();
+
+        if (b.city != null && !b.city.isEmpty()) sb.append(b.city);
+
+        if (b.region != null && !b.region.isEmpty()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(b.region);
+        }
+
+        if (b.country != null && !b.country.isEmpty()) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(b.country);
+        }
+
+        return sb.length() == 0 ? null : sb.toString();
+    }
+
+    /** Step 76: last resort — the hardcoded city in the constants. */
+    private void useDefaultCity(String reason) {
+
+        Log.w("LOCATION", "Using default city — " + reason);     // Step 45-76
         fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
-        showCity(DEFAULT_LAT, DEFAULT_LON);          // Step 47: label the fallback city
+        showCity(DEFAULT_LAT, DEFAULT_LON);                      // Step 47: label it
     }
     /** Steps 49+58: refresh the chosen city, else GPS, else the last coordinates. */
     private void refreshWeather() {
