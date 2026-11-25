@@ -9,8 +9,11 @@ public class RetrofitClient {
 
     private static final String BASE_URL =
             "https://api.open-meteo.com/";
+    private static final String GEOCODING_BASE_URL =     // Step 51: city search host
+            "https://geocoding-api.open-meteo.com/";
 
     private static Retrofit retrofit;
+    private static Retrofit geocodingRetrofit;           // Step 51
 
     public static WeatherApi getApi() {
 
@@ -24,5 +27,18 @@ public class RetrofitClient {
         }
 
         return retrofit.create(WeatherApi.class);
+    }
+
+    /** Step 51: separate client because the base URL is different. */
+    public static GeocodingApi getGeocodingApi() {
+
+        if (geocodingRetrofit == null) {
+            geocodingRetrofit = new Retrofit.Builder()
+                    .baseUrl(GEOCODING_BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+
+        return geocodingRetrofit.create(GeocodingApi.class);
     }
 }
