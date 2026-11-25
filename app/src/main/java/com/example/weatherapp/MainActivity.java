@@ -391,7 +391,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (body == null || body.results == null || body.results.isEmpty()) {
                     Log.w("GEOCODE", "No matching city for: " + query); // Step 75 empty state
-                    hideSearchResults();                               // Step 56
+                    showNoCityFound(query);                            // Step 75: tell the user
                     return;
                 }
 
@@ -449,6 +449,21 @@ public class MainActivity extends AppCompatActivity {
 
         llSearchResults.removeAllViews();                              // Step 56
         llSearchResults.setVisibility(View.GONE);                      // Step 56
+    }
+
+    /** Step 75: nothing matched — show a friendly empty state in the results card. */
+    private void showNoCityFound(String query) {
+
+        llSearchResults.removeAllViews();                              // Step 75
+
+        View row = LayoutInflater.from(this)
+                .inflate(R.layout.item_city_empty, llSearchResults, false);   // Step 75
+
+        TextView title = row.findViewById(R.id.tvEmptyTitle);          // Step 75
+        title.setText("No city found for \"" + query + "\"");          // Step 75
+
+        llSearchResults.addView(row);                                  // Step 75
+        llSearchResults.setVisibility(View.VISIBLE);                   // Step 75
     }
 
     /** Step 57: the user tapped one of the matching cities. */
