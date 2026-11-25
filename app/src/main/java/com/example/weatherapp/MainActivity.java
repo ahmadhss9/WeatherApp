@@ -109,6 +109,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvPrecipitation;            // Step 34
     private TextView tvCondition;                 //step 35
     private TextView tvLocation;                     // Step 47: detected city label
+    private TextView tvHighLow;                      // Step 70: today's high / low
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
@@ -169,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
         tvHumidity = findViewById(R.id.tvHumidity);   // Step 31
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
         tvLocation = findViewById(R.id.tvLocation);  // Step 47
+        tvHighLow = findViewById(R.id.tvHighLow);    // Step 70
         btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
         btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
@@ -775,6 +777,16 @@ public class MainActivity extends AppCompatActivity {
         ivCurrentWeather.setImageResource(icon);        // Step 40: big card icon
         ivHeaderWeather.setImageResource(icon);         // Step 40: header icon
 
+        // Step 70: today's high / low straight from daily[0]
+        if (currentWeather.daily != null && currentWeather.daily.size() > 0) {
+            double high = currentWeather.daily.temperatureMax.get(0);
+            double low = currentWeather.daily.temperatureMin.get(0);
+
+            tvHighLow.setText("H: " + Math.round(high) + "°   L: "     // Step 70
+                    + Math.round(low) + "°");
+        } else {
+            tvHighLow.setText("H: --   L: --");                      // Step 70: no daily data
+        }
     }
 
 
