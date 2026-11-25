@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Step 68: one row of the 7-day forecast -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="58dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <!-- Step 68: "Today" / "Tomorrow" / "Wed" -->
+    <TextView
+        android:id="@+id/tvDayName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="#172B4D"
+        android:textSize="14sp" />
+
+    <!-- Step 68: daily icon (always the day variant) -->
+    <ImageView
+        android:id="@+id/ivDayIcon"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:contentDescription="Daily weather"
+        android:scaleType="fitCenter" />
+
+    <!-- Step 68: "30° / 20°" -->
+    <TextView
+        android:id="@+id/tvDayRange"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textColor="#172B4D"
+        android:textSize="14sp" />
+
+</LinearLayout>
