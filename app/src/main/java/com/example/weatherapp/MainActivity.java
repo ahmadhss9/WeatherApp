@@ -246,13 +246,15 @@ public class MainActivity extends AppCompatActivity {
         fetchCurrentWeather(DEFAULT_LAT, DEFAULT_LON);
         showCity(DEFAULT_LAT, DEFAULT_LON);          // Step 47: label the fallback city
     }
-    /** Step 49: re-detect location, or re-fetch the last coordinates. */
+    /** Steps 49+58: refresh the chosen city, else GPS, else the last coordinates. */
     private void refreshWeather() {
 
         Log.d("LOCATION", "Refresh pressed");                // Step 49
         btnRefresh.setEnabled(false);                        // Step 49: block double taps
 
-        if (locationHelper.hasPermission()) {
+        if (selectedCity != null) {
+            loadSelectedCityWeather();                       // Step 58: stay on the chosen city
+        } else if (locationHelper.hasPermission()) {
             useDeviceLocation();                             // Step 49: fresh GPS + refetch
         } else {
             fetchCurrentWeather(lastLat, lastLon);           // Step 48 coords
@@ -376,7 +378,20 @@ public class MainActivity extends AppCompatActivity {
         etCitySearch.setText(city.name);                              // Step 57: keep the name, not the region
         etCitySearch.clearFocus();                                    // Step 57: no cursor blinking
 
-        // Step 58: request weather for this city here.
+        loadSelectedCityWeather();                                    // Step 58: fetch this city
+    }
+
+    /** Step 58: request weather for the city the user picked. */
+    private void loadSelectedCityWeather() {
+
+        if (selectedCity == null) {
+            Log.w("GEOCODE", "loadSelectedCityWeather: no city selected");
+            return;
+        }
+
+        Log.d("GEOCODE", "Loading weather for " + selectedCity.label());     // Step 58
+
+        fetchCurrentWeather(selectedCity.latitude, selectedCity.longitude);  // Step 58
     }
 
     /** Step 57: dismiss the soft keyboard after a selection. */
