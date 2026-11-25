@@ -78,6 +78,10 @@ public class MainActivity extends AppCompatActivity {
     // Step 62 — hourly fields (parallel arrays, one value per hour)
     private static final String HOURLY_FIELDS =
             "temperature_2m,weather_code,is_day";
+
+    // Step 67 — daily fields (parallel arrays, one value per day)
+    private static final String DAILY_FIELDS =
+            "weather_code,temperature_2m_max,temperature_2m_min";
     private static final double DEFAULT_LAT = 31.418;    // Step 42: fallback city
     private static final double DEFAULT_LON = 73.079;
 
@@ -504,9 +508,9 @@ public class MainActivity extends AppCompatActivity {
         WeatherApi api = RetrofitClient.getApi();
 
         Call<WeatherResponse> call =
-                api.getWeather(lat, lon, CURRENT_FIELDS, HOURLY_FIELDS, "", "auto", 2);
-        //                                  current ─┘   hourly ─┘   daily  tz      forecast_days=2
-        //  2 days so the "next 24 hours" strip still has data after midnight (step 64)
+                api.getWeather(lat, lon, CURRENT_FIELDS, HOURLY_FIELDS, DAILY_FIELDS, "auto", 7);
+        //                                  current ─┘   hourly ─┘     daily ─┘        tz    forecast_days=7
+        //  7 days for the weekly list (step 69); the hourly strip slices the first 24 in step 64
 
         Log.d(TAG, "Request URL: " + call.request().url());
 
@@ -548,8 +552,30 @@ public class MainActivity extends AppCompatActivity {
 
         logWeather(currentWeather.current);   // Step 29
         logHourly();                          // Step 62
+        logDaily();                           // Step 67
         renderCurrentWeather();               // Step 30
         renderHourly();                       // Step 64
+    }
+
+    /** Step 67: prove the daily arrays parsed correctly. */
+    private void logDaily() {
+
+        if (currentWeather == null || currentWeather.daily == null) {
+            Log.w(TAG, "No daily block in the response");      // Step 67
+            return;
+        }
+
+        WeatherResponse.Daily d = currentWeather.daily;
+        int days = d.size();                                   // Step 66: safe length
+
+        Log.d(TAG, "----- DAILY (" + days + " days) -----");   // Step 67
+
+        for (int i = 0; i < Math.min(days, 7); i++) {
+            Log.d(TAG, d.time.get(i)
+                    + "  max=" + d.temperatureMax.get(i)
+                    + "  min=" + d.temperatureMin.get(i)
+                    + "  code=" + d.weatherCode.get(i));       // Step 67
+        }
     }
 
     /** Step 64: fill the horizontal strip with the next 24 hours. */
