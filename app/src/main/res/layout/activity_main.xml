@@ -395,6 +395,9 @@
             android:layout_marginTop="13dp"
             android:clipToPadding="false"
             android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:paddingStart="2dp"
+            android:paddingEnd="2dp"
             android:scrollbars="none" />
 
         <!-- Weekly Forecast -->
@@ -414,7 +417,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="13dp"
             android:background="@drawable/bg_detail_card"
+            android:clipToPadding="false"
             android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
             android:padding="12dp"
             android:scrollbars="none" />
 

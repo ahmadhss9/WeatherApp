@@ -213,10 +213,14 @@ public class MainActivity extends AppCompatActivity {
         rvHourly.setLayoutManager(                                   // Step 64: horizontal list
                 new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
         rvHourly.setAdapter(hourlyAdapter);                          // Step 63-64
+        rvHourly.setHasFixedSize(true);                              // Step 78: fixed 120dp cells
+        rvHourly.setNestedScrollingEnabled(false);                   // Step 78: vertical scroll is the page's job
 
         rvDaily = findViewById(R.id.rvDaily);                        // Step 69
         rvDaily.setLayoutManager(new LinearLayoutManager(this));     // Step 69: vertical
         rvDaily.setAdapter(dailyAdapter);                            // Step 68-69
+        rvDaily.setHasFixedSize(true);                               // Step 78: fixed 58dp rows
+        rvDaily.setNestedScrollingEnabled(false);                    // Step 78: no nested vertical scroll
 
         DividerItemDecoration divider =                              // Step 69: row separators
                 new DividerItemDecoration(this, RecyclerView.VERTICAL);
