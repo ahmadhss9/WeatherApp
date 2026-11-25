@@ -111,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvCondition;                 //step 35
     private TextView tvLocation;                     // Step 47: detected city label
     private TextView tvHighLow;                      // Step 70: today's high / low
+    private TextView tvError;                        // Step 72: error banner
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
@@ -175,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
         tvLocation = findViewById(R.id.tvLocation);  // Step 47
         tvHighLow = findViewById(R.id.tvHighLow);    // Step 70
         progressBar = findViewById(R.id.progressBar);// Step 71
+        tvError = findViewById(R.id.tvError);        // Step 72
         btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
         btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
@@ -384,6 +386,7 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<GeocodingResponse> call, Throwable t) {
                 endRequest();                                          // Step 71
                 Log.e("GEOCODE", "Search failed: " + t);               // Step 74 offline case
+                showError("City search failed — check your internet and try again.");   // Step 72
             }
         });
     }
@@ -568,6 +571,20 @@ public class MainActivity extends AppCompatActivity {
 
         activeRequests++;
         setLoading(true);
+        hideError();                     // Step 72: a new attempt clears the old message
+    }
+
+    /** Step 72: show a user-facing error message. */
+    private void showError(String message) {
+
+        tvError.setText(message);        // Step 72
+        tvError.setVisibility(View.VISIBLE);
+    }
+
+    /** Step 72: hide the error banner. */
+    private void hideError() {
+
+        tvError.setVisibility(View.GONE);   // Step 72
     }
 
     /** Step 71: one request finished — hide the spinner when none are left. */
@@ -855,6 +872,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (code >= 500) {
             Log.e(TAG, "Server-side problem at Open-Meteo");
         }
+
+        // Step 72: tell the user, not just Logcat
+        showError("Weather request failed (HTTP " + code + "). Tap Refresh to retry.");
     }
 
     /** Step 28 — never reached the server. */
@@ -862,12 +882,16 @@ public class MainActivity extends AppCompatActivity {
 
         if (t instanceof UnknownHostException) {
             Log.e(TAG, "No internet or DNS failure", t);
+            showError("No internet connection. Turn on Wi-Fi or mobile data, then tap Refresh.");  // Step 72
         } else if (t instanceof SocketTimeoutException) {
             Log.e(TAG, "Request timed out", t);
+            showError("The weather service is slow right now. Tap Refresh to try again.");        // Step 72
         } else if (t instanceof IOException) {
             Log.e(TAG, "I/O problem during request", t);
+            showError("Connection problem. Tap Refresh to try again.");                           // Step 72
         } else {
             Log.e(TAG, "Unexpected failure", t);
+            showError("Something went wrong while loading the weather.");                         // Step 72
         }
     }
 }

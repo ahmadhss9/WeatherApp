@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Step 72: soft red card behind API / network error text -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#FDECEA" />
+    <corners android:radius="20dp" />
+</shape>
