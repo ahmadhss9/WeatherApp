@@ -49,6 +49,7 @@ import com.google.android.gms.location.LocationResult;     // Step 44
 import com.google.android.gms.location.Priority;           // Step 44
 import android.os.Handler;                                  // Step 45
 import android.widget.EditText;                                          // Step 54
+import android.widget.ProgressBar;                                      // Step 71
 import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
 import com.google.android.material.textfield.TextInputEditText;          // Step 54
 import android.view.inputmethod.EditorInfo;                        // Step 55
@@ -128,6 +129,8 @@ public class MainActivity extends AppCompatActivity {
     private final HourlyAdapter hourlyAdapter = new HourlyAdapter();          // Step 63-64
     private RecyclerView rvDaily;                                             // Step 69: 7-day list
     private final DailyAdapter dailyAdapter = new DailyAdapter();             // Step 68-69
+    private ProgressBar progressBar;                                          // Step 71: loading spinner
+    private int activeRequests = 0;                                           // Step 71: weather + search
 
 
     // Step 43: permission dialog result comes back here
@@ -171,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
         tvFeelsLike = findViewById(R.id.tvFeelsLike);   // Step 32
         tvLocation = findViewById(R.id.tvLocation);  // Step 47
         tvHighLow = findViewById(R.id.tvHighLow);    // Step 70
+        progressBar = findViewById(R.id.progressBar);// Step 71
         btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
         btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
@@ -307,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
     private void refreshWeather() {
 
         Log.d("LOCATION", "Refresh pressed");                // Step 49
-        btnRefresh.setEnabled(false);                        // Step 49: block double taps
+        // Step 71: beginRequest() inside fetchCurrentWeather now handles the spinner
 
         if (selectedCity != null) {
             loadSelectedCityWeather();                       // Step 58: stay on the chosen city
@@ -335,7 +339,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        btnSearch.setEnabled(false);                                   // Step 55: block double taps
+        beginRequest();                                                // Step 71: spinner + lock buttons
         hideSearchResults();                                           // Step 56: clear old list
         Log.d("GEOCODE", "Searching: " + query);
 
@@ -351,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<GeocodingResponse> call,
                                    Response<GeocodingResponse> response) {
 
-                btnSearch.setEnabled(true);                            // Step 55
+                endRequest();                                          // Step 71
 
                 if (!response.isSuccessful()) {
                     Log.e("GEOCODE", "HTTP " + response.code());       // step 72 shows it
@@ -378,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<GeocodingResponse> call, Throwable t) {
-                btnSearch.setEnabled(true);                            // Step 55
+                endRequest();                                          // Step 71
                 Log.e("GEOCODE", "Search failed: " + t);               // Step 74 offline case
             }
         });
@@ -534,6 +538,8 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d(TAG, "Request URL: " + call.request().url());
 
+        beginRequest();                                              // Step 71: spinner + lock buttons
+
         call.enqueue(new Callback<WeatherResponse>() {
 
             @Override
@@ -545,18 +551,44 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     handleHttpError(response.code(), response.errorBody());  // Step 28
                 }
+
+                endRequest();                                                // Step 71
             }
 
             @Override
             public void onFailure(Call<WeatherResponse> call, Throwable t) {
                 handleNetworkFailure(t);                                     // Step 28
+                endRequest();                                                // Step 71
             }
         });
     }
 
+    /** Step 71: one more request in flight — show the spinner, lock the buttons. */
+    private void beginRequest() {
+
+        activeRequests++;
+        setLoading(true);
+    }
+
+    /** Step 71: one request finished — hide the spinner when none are left. */
+    private void endRequest() {
+
+        activeRequests = Math.max(0, activeRequests - 1);
+        if (activeRequests == 0) {
+            setLoading(false);
+        }
+    }
+
+    /** Step 71: spinner visibility + button state. */
+    private void setLoading(boolean loading) {
+
+        progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
+        btnRefresh.setEnabled(!loading);
+        btnSearch.setEnabled(!loading);
+    }
+
     /** Step 27 — validate, store, then draw. */
     private void handleSuccess(WeatherResponse weather) {
-        btnRefresh.setEnabled(true);          // Step 49: re-arm the refresh button
 
         if (weather == null) {
             Log.e(TAG, "Body was empty");
@@ -792,7 +824,6 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 28 — server refused (HTTP 4xx/5xx); read its reason. */
     private void handleHttpError(int code, ResponseBody errorBody) {
-        btnRefresh.setEnabled(true); // Step 49
 
         String body = "no error body";
 
@@ -828,8 +859,6 @@ public class MainActivity extends AppCompatActivity {
 
     /** Step 28 — never reached the server. */
     private void handleNetworkFailure(Throwable t) {
-
-        btnRefresh.setEnabled(true); // Step 49
 
         if (t instanceof UnknownHostException) {
             Log.e(TAG, "No internet or DNS failure", t);

@@ -56,6 +56,15 @@
                 android:contentDescription="Weather"
                 android:scaleType="fitCenter" /><!-- Step 40  id headerweather-->
 
+            <!-- Step 71: shows while any request is in flight -->
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="10dp"
+                android:indeterminateTint="#2F6FED"
+                android:visibility="gone" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRefresh"
