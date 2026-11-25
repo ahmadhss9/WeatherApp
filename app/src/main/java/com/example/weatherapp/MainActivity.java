@@ -47,6 +47,9 @@ import com.google.android.gms.location.LocationRequest;    // Step 44
 import com.google.android.gms.location.LocationResult;     // Step 44
 import com.google.android.gms.location.Priority;           // Step 44
 import android.os.Handler;                                  // Step 45
+import android.widget.EditText;                                          // Step 54
+import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
+import com.google.android.material.textfield.TextInputEditText;          // Step 54
 
 
 public class MainActivity extends AppCompatActivity {
@@ -81,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
     private com.google.android.material.button.MaterialButton btnRefresh;   // Step 49: refresh button
     private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
     private double lastLon = DEFAULT_LON;
+
+    private com.google.android.material.button.MaterialButton btnSearch;      // Step 54
+    private TextInputEditText etCitySearch;                                   // Step 54
 
 
     // Step 43: permission dialog result comes back here
@@ -135,6 +141,10 @@ public class MainActivity extends AppCompatActivity {
                 + locationHelper.hasPermission());
 
         hadPermission = locationHelper.hasPermission();   // Step 50: remember current state
+
+        btnSearch = findViewById(R.id.btnSearch);                    // Step 54
+        etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
+        btnSearch.setOnClickListener(v -> onSearchClicked());        // Step 54
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -230,6 +240,14 @@ public class MainActivity extends AppCompatActivity {
             fetchCurrentWeather(lastLat, lastLon);           // Step 48 coords
             showCity(lastLat, lastLon);                      // keep header accurate
         }
+    }
+    /** Step 54: placeholder until step 55 sends the request. */
+    private void onSearchClicked() {
+
+        String query = etCitySearch.getText() == null
+                ? "" : etCitySearch.getText().toString().trim();      // Step 54
+
+        Log.d("GEOCODE", "Search tapped: " + query);                  // Step 54
     }
     /** Step 47: geocode the coordinates and write the city on screen. */
     private void showCity(double lat, double lon) {
