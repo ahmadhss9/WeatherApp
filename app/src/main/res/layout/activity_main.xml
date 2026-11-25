@@ -71,6 +71,23 @@
                 android:textSize="12sp"
                 app:cornerRadius="20dp" /><!-- Step 49 -->
         </LinearLayout>
+        <!-- Step 53: city search input -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/searchLayout"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:hint="Search city">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etCitySearch"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:imeOptions="actionSearch"
+                android:inputType="textCapWords"
+                android:maxLines="1" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Main Weather Card -->
         <LinearLayout
