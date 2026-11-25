@@ -71,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
     private static final double DEFAULT_LAT = 31.418;    // Step 42: fallback city
     private static final double DEFAULT_LON = 73.079;
 
+    // ---- Step 59: where the chosen city is remembered ----
+    private static final String PREFS = "weather_prefs";          // Step 59
+    private static final String KEY_CITY_LABEL = "city_label";    // Step 59: "London, England, UK"
+    private static final String KEY_CITY_LAT = "city_lat";        // Step 59
+    private static final String KEY_CITY_LON = "city_lon";        // Step 59
+
     // Step 27 — parsed response; all views read from here
     private WeatherResponse currentWeather;
 
@@ -370,6 +376,7 @@ public class MainActivity extends AppCompatActivity {
                 + "  (" + city.latitude + ", " + city.longitude + ")");   // Step 57
 
         selectedCity = city;                                          // Step 57: remember the choice
+        saveSelectedCity(city);                                       // Step 59: persist it
 
         hideSearchResults();                                          // Step 57
         hideKeyboard();                                               // Step 57
@@ -392,6 +399,20 @@ public class MainActivity extends AppCompatActivity {
         Log.d("GEOCODE", "Loading weather for " + selectedCity.label());     // Step 58
 
         fetchCurrentWeather(selectedCity.latitude, selectedCity.longitude);  // Step 58
+    }
+
+    /** Step 59: remember the chosen city so step 60 can restore it. */
+    private void saveSelectedCity(GeocodingResponse.Result city) {
+
+        // SharedPreferences has no putDouble(), so store the bits of the double
+        getSharedPreferences(PREFS, MODE_PRIVATE)                     // Step 59
+                .edit()
+                .putString(KEY_CITY_LABEL, city.label())              // Step 59
+                .putLong(KEY_CITY_LAT, Double.doubleToRawLongBits(city.latitude))    // Step 59
+                .putLong(KEY_CITY_LON, Double.doubleToRawLongBits(city.longitude))   // Step 59
+                .apply();                                            // Step 59: async write
+
+        Log.d("GEOCODE", "Saved city: " + city.label());              // Step 59
     }
 
     /** Step 57: dismiss the soft keyboard after a selection. */
