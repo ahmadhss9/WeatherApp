@@ -37,6 +37,9 @@ import com.example.weatherapp.utils.LocationHelper;   // Step 41
 
 import android.Manifest;                                                        // Step 43
 import android.content.SharedPreferences;                                       // Step 60
+import android.net.ConnectivityManager;                                        // Step 74
+import android.net.Network;                                                    // Step 74
+import android.net.NetworkCapabilities;                                        // Step 74
 import androidx.activity.result.ActivityResultLauncher;                         // Step 43
 import androidx.activity.result.contract.ActivityResultContracts;               // Step 43
 import android.annotation.SuppressLint;                    // Step 44
@@ -355,6 +358,13 @@ public class MainActivity extends AppCompatActivity {
         lastSearchQuery = query;                                       // Step 73: remember for retry
         lastFailedSearch = false;                                      // Step 73
 
+        if (!isOnline()) {                                             // Step 74: fail fast
+            lastFailedSearch = true;                                   // Step 73: retry should re-search
+            Log.w("GEOCODE", "Offline — skipping city search");
+            showError("You're offline — city search needs an internet connection.");   // Step 74
+            return;
+        }
+
         Call<GeocodingResponse> call =
                 RetrofitClient.getGeocodingApi()
                         .searchCities(query, 5, "en", "json");         // Step 55
@@ -547,6 +557,13 @@ public class MainActivity extends AppCompatActivity {
         lastLon = lon;
         lastFailedSearch = false;                    // Step 73: weather is the latest action now
 
+        if (!isOnline()) {                                        // Step 74: fail fast, don't wait 10 s
+            Log.w(TAG, "Offline — skipping weather request");
+            showError("You're offline. Showing the last loaded weather. "
+                    + "Tap Retry when you're back online.");      // Step 74
+            return;
+        }
+
         WeatherApi api = RetrofitClient.getApi();
 
         Call<WeatherResponse> call =
@@ -602,9 +619,24 @@ public class MainActivity extends AppCompatActivity {
         llError.setVisibility(View.GONE);       // Step 72-73
     }
 
+    /** Step 74: is there a usable internet connection right now? */
+    private boolean isOnline() {
+
+        ConnectivityManager cm =
+                (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);   // Step 74
+
+        if (cm == null) return true;                        // can't tell: let the request try
+
+        Network network = cm.getActiveNetwork();            // Step 74
+        if (network == null) return false;                  // no Wi-Fi, no mobile data
+
+        NetworkCapabilities caps = cm.getNetworkCapabilities(network);   // Step 74
+        return caps != null
+                && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+    }
+
     /** Step 73: repeat whichever request failed last. */
     private void retryLastRequest() {
-
         Log.d("RETRY", "Retry tapped, failedSearch=" + lastFailedSearch);   // Step 73
 
         if (lastFailedSearch && lastSearchQuery != null) {
