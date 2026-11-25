@@ -69,6 +69,10 @@ public class MainActivity extends AppCompatActivity {
     private static final String CURRENT_FIELDS =
             "temperature_2m,relative_humidity_2m,apparent_temperature,"
                     + "is_day,precipitation,weather_code,wind_speed_10m";
+
+    // Step 62 — hourly fields (parallel arrays, one value per hour)
+    private static final String HOURLY_FIELDS =
+            "temperature_2m,weather_code,is_day";
     private static final double DEFAULT_LAT = 31.418;    // Step 42: fallback city
     private static final double DEFAULT_LON = 73.079;
 
@@ -488,8 +492,9 @@ public class MainActivity extends AppCompatActivity {
         WeatherApi api = RetrofitClient.getApi();
 
         Call<WeatherResponse> call =
-                api.getWeather(lat, lon, CURRENT_FIELDS, "", "", "auto", 1);
-        //                        hourly ─┘   └─ daily   timezone  forecast_days
+                api.getWeather(lat, lon, CURRENT_FIELDS, HOURLY_FIELDS, "", "auto", 2);
+        //                                  current ─┘   hourly ─┘   daily  tz      forecast_days=2
+        //  2 days so the "next 24 hours" strip still has data after midnight (step 64)
 
         Log.d(TAG, "Request URL: " + call.request().url());
 
@@ -530,7 +535,29 @@ public class MainActivity extends AppCompatActivity {
         currentWeather = weather;
 
         logWeather(currentWeather.current);   // Step 29
+        logHourly();                          // Step 62
         renderCurrentWeather();               // Step 30
+    }
+
+    /** Step 62: prove the hourly arrays parsed correctly. */
+    private void logHourly() {
+
+        if (currentWeather == null || currentWeather.hourly == null) {
+            Log.w(TAG, "No hourly block in the response");   // Step 62
+            return;
+        }
+
+        WeatherResponse.Hourly h = currentWeather.hourly;
+        int hours = h.size();                                // Step 61: safe length
+
+        Log.d(TAG, "----- HOURLY (" + hours + " hours) -----");   // Step 62
+
+        for (int i = 0; i < Math.min(hours, 6); i++) {
+            Log.d(TAG, h.time.get(i)
+                    + "  " + h.temperature.get(i) + " °C"
+                    + "  code=" + h.weatherCode.get(i)
+                    + "  is_day=" + h.isDay.get(i));          // Step 62
+        }
     }
 
     /** Step 29 — dump all fields for comparison with the UI. */
