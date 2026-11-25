@@ -22,6 +22,9 @@ public class WeatherResponse {
     @SerializedName("hourly")                       // Step 61
     public Hourly hourly;
 
+    @SerializedName("daily")                        // Step 66
+    public Daily daily;
+
     public static class CurrentWeather {
 
         @SerializedName("time")
@@ -79,6 +82,40 @@ public class WeatherResponse {
 
             // Step 65: is_day is optional — hours without it fall back to current.isDay
             if (isDay != null) n = Math.min(n, isDay.size());
+            return n;
+        }
+    }
+
+    /**
+     * Step 66: daily forecast. Parallel arrays again — time[0] belongs to
+     * weatherCode[0], temperatureMax[0], temperatureMin[0].
+     * time uses a plain date: "2026-11-25".
+     */
+    public static class Daily {
+
+        @SerializedName("time")
+        public List<String> time;
+
+        @SerializedName("weather_code")
+        public List<Integer> weatherCode;
+
+        @SerializedName("temperature_2m_max")
+        public List<Double> temperatureMax;         // °C, daily high
+
+        @SerializedName("temperature_2m_min")
+        public List<Double> temperatureMin;         // °C, daily low
+
+        /** Step 66: how many complete days we can safely display. */
+        public int size() {
+            if (time == null || weatherCode == null
+                    || temperatureMax == null || temperatureMin == null) {
+                return 0;
+            }
+
+            int n = time.size();
+            n = Math.min(n, weatherCode.size());
+            n = Math.min(n, temperatureMax.size());
+            n = Math.min(n, temperatureMin.size());
             return n;
         }
     }
