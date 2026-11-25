@@ -1,5 +1,6 @@
 package com.example.weatherapp.adapters;
 
+import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +48,7 @@ public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.DayViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull DayViewHolder holder, int position) {
-        holder.bind(items.get(position));                          // Step 68
+        holder.bind(items.get(position), nightMode);              // Step 68
     }
 
     @Override
@@ -69,7 +70,7 @@ public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.DayViewHolde
             ivDayIcon = itemView.findViewById(R.id.ivDayIcon);     // Step 68
         }
 
-        void bind(DailyItem item) {
+        void bind(DailyItem item, boolean nightMode) {
 
             tvDayName.setText(item.label);                         // Step 68: "Today" / "Wed"
 
@@ -77,9 +78,9 @@ public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.DayViewHolde
             tvDayRange.setTextColor(nightMode ? 0xFFB7C4D8 : 0xFF172B4D);  // Step 79
 
             if (item.isToday) {                                    // Step 68: first row bold
-                tvDayName.setTypeface(null, android.graphics.Typeface.BOLD);
+                tvDayName.setTypeface(null, Typeface.BOLD);
             } else {
-                tvDayName.setTypeface(null, android.graphics.Typeface.NORMAL);
+                tvDayName.setTypeface(null, Typeface.NORMAL);
             }
 
             tvDayRange.setText(Math.round(item.high) + "° / "     // Step 68: high / low (step 70)

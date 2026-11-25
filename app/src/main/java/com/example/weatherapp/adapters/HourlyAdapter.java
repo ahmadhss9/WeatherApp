@@ -47,7 +47,7 @@ public class HourlyAdapter extends RecyclerView.Adapter<HourlyAdapter.HourViewHo
 
     @Override
     public void onBindViewHolder(@NonNull HourViewHolder holder, int position) {
-        holder.bind(items.get(position));                          // Step 63
+        holder.bind(items.get(position), nightMode);               // Step 63
     }
 
     @Override
@@ -69,7 +69,7 @@ public class HourlyAdapter extends RecyclerView.Adapter<HourlyAdapter.HourViewHo
             ivIcon = itemView.findViewById(R.id.ivHourIcon);       // Step 63
         }
 
-        void bind(HourlyItem item) {
+        void bind(HourlyItem item, boolean nightMode) {
 
             tvTime.setText(item.label);                            // Step 63: "NOW" / "3 PM"
             tvTemp.setText(Math.round(item.temperature) + "°");    // Step 63
