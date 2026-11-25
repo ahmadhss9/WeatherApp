@@ -21,6 +21,14 @@ import java.util.List;
 public class HourlyAdapter extends RecyclerView.Adapter<HourlyAdapter.HourViewHolder> {
 
     private final List<HourlyItem> items = new ArrayList<>();      // Step 63
+    private boolean nightMode = false;                             // Step 79: dark palette flag
+
+    /** Step 79: switch between the light and dark cell palette. */
+    public void setNightMode(boolean night) {
+        if (nightMode == night) return;
+        nightMode = night;
+        notifyDataSetChanged();
+    }
 
     /** Step 63: replace the whole list (24 cells, few enough to rebind fully). */
     public void submitList(List<HourlyItem> newItems) {
@@ -76,6 +84,10 @@ public class HourlyAdapter extends RecyclerView.Adapter<HourlyAdapter.HourViewHo
                 itemView.setBackgroundResource(R.drawable.bg_hour_selected);
                 tvTime.setTextColor(0xFFFFFFFF);
                 tvTemp.setTextColor(0xFFFFFFFF);
+            } else if (nightMode) {                                // Step 79: night palette
+                itemView.setBackgroundResource(R.drawable.bg_hour_item_night);
+                tvTime.setTextColor(0xFF8493A8);
+                tvTemp.setTextColor(0xFFE6EDF7);
             } else {
                 itemView.setBackgroundResource(R.drawable.bg_hour_item);
                 tvTime.setTextColor(0xFF718096);

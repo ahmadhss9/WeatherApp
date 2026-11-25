@@ -273,6 +273,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
+            android:id="@+id/tvDetailsHeading"
             android:text="Weather Details"
             android:textColor="#172B4D"
             android:textSize="19sp"
@@ -286,6 +287,7 @@
             android:orientation="horizontal">
 
             <LinearLayout
+                android:id="@+id/cardHumidity"
                 android:layout_width="0dp"
                 android:layout_height="105dp"
                 android:layout_marginEnd="7dp"
@@ -316,6 +318,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/cardWind"
                 android:layout_width="0dp"
                 android:layout_height="105dp"
                 android:layout_marginStart="7dp"
@@ -349,6 +352,7 @@
 
         <!-- Step 34: precipitation card -->
         <LinearLayout
+            android:id="@+id/cardPrecipitation"
             android:layout_width="match_parent"
             android:layout_height="105dp"
             android:layout_marginTop="14dp"
@@ -382,6 +386,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
+            android:id="@+id/tvHourlyHeading"
             android:text="Hourly Forecast"
             android:textColor="#172B4D"
             android:textSize="19sp"
@@ -405,6 +410,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="28dp"
+            android:id="@+id/tvDailyHeading"
             android:text="7-Day Forecast"
             android:textColor="#172B4D"
             android:textSize="19sp"

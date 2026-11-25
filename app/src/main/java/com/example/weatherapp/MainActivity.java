@@ -36,6 +36,9 @@ import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
 import com.example.weatherapp.utils.LocationHelper;   // Step 41
 
 import android.Manifest;                                                        // Step 43
+import android.graphics.drawable.Drawable;                                     // Step 79
+import androidx.core.view.WindowCompat;                                        // Step 79
+import androidx.core.view.WindowInsetsControllerCompat;                        // Step 79
 import android.content.SharedPreferences;                                       // Step 60
 import android.net.ConnectivityManager;                                        // Step 74
 import android.net.Network;                                                    // Step 74
@@ -122,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
     private com.google.android.material.button.MaterialButton btnRetry;   // Step 73: retry button
     private String lastSearchQuery;                  // Step 73: what to retry
     private boolean lastFailedSearch;                // Step 73: which op failed
+    private boolean nightTheme = false;              // Step 79: current palette
     private ImageView ivCurrentWeather;              // Step 36: main weather icon
     private ImageView ivHeaderWeather;               // Step 40: small header icon
     private LocationHelper locationHelper;               // Step 41: location helper
@@ -520,9 +524,12 @@ public class MainActivity extends AppCompatActivity {
             TextView tvName = row.findViewById(R.id.tvCityName);       // Step 56
             TextView tvCoords = row.findViewById(R.id.tvCityCoords);   // Step 56
 
-            tvName.setText(r.label());                                 // Step 56: "Lahore, Punjab, Pakistan"
-            tvCoords.setText(String.format(Locale.US, "%.2f, %.2f",   // Step 56
-                    r.latitude, r.longitude));
+        tvName.setText(r.label());                                 // Step 56: "Lahore, Punjab, Pakistan"
+        tvCoords.setText(String.format(Locale.US, "%.2f, %.2f",   // Step 56
+                r.latitude, r.longitude));
+
+        tvName.setTextColor(nightTheme ? 0xFFE6EDF7 : 0xFF172B4D);   // Step 79: readable on dark cards
+        tvCoords.setTextColor(nightTheme ? 0xFF94A3B8 : 0xFF8493A8); // Step 79
 
             row.setOnClickListener(v -> onCitySelected(r));            // Step 57: pick this city
 
@@ -547,6 +554,7 @@ public class MainActivity extends AppCompatActivity {
 
         TextView title = row.findViewById(R.id.tvEmptyTitle);          // Step 75
         title.setText("No city found for \"" + query + "\"");          // Step 75
+        title.setTextColor(nightTheme ? 0xFFE6EDF7 : 0xFF172B4D);      // Step 79
 
         llSearchResults.addView(row);                                  // Step 75
         llSearchResults.setVisibility(View.VISIBLE);                   // Step 75
@@ -1039,6 +1047,55 @@ public class MainActivity extends AppCompatActivity {
         } else {
             tvHighLow.setText("H: --   L: --");                      // Step 70: no daily data
         }
+
+        applyTheme(c.isDay == 1);                                    // Step 79: day / night palette
+    }
+
+    /** Step 79: light palette by day, dark palette at night (driven by API is_day). */
+    private void applyTheme(boolean isDay) {
+
+        nightTheme = !isDay;                                         // Step 79
+
+        int pageBg = isDay ? 0xFFF4F7FC : 0xFF0F1724;                // Step 79
+        int cardTint = isDay ? 0xFFFFFFFF : 0xFF1B2432;              // Step 79
+        int heading = isDay ? 0xFF172B4D : 0xFFE6EDF7;               // Step 79
+        int value = isDay ? 0xFF172B4D : 0xFFF2F6FC;                 // Step 79
+
+        findViewById(R.id.main).setBackgroundColor(pageBg);          // Step 79
+
+        int[] cardIds = {R.id.cardHumidity, R.id.cardWind,            // Step 79
+                R.id.cardPrecipitation, R.id.rvDaily, R.id.llSearchResults};
+
+        for (int id : cardIds) {
+
+            View view = findViewById(id);
+            if (view == null) continue;
+
+            Drawable bg = view.getBackground();
+            if (bg == null) continue;
+
+            bg = bg.mutate();                                        // Step 79: own copy per view
+            bg.setTint(cardTint);
+            view.setBackground(bg);
+        }
+
+        ((TextView) findViewById(R.id.tvDetailsHeading)).setTextColor(heading);   // Step 79
+        ((TextView) findViewById(R.id.tvHourlyHeading)).setTextColor(heading);
+        ((TextView) findViewById(R.id.tvDailyHeading)).setTextColor(heading);
+
+        tvLocation.setTextColor(value);                              // Step 79
+        tvHumidity.setTextColor(value);
+        tvWindSpeed.setTextColor(value);
+        tvPrecipitation.setTextColor(value);
+        tvError.setTextColor(isDay ? 0xFFB3261E : 0xFFFFB4AB);       // Step 79
+
+        hourlyAdapter.setNightMode(!isDay);                          // Step 79
+        dailyAdapter.setNightMode(!isDay);
+
+        WindowInsetsControllerCompat controller =
+                WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
+        controller.setAppearanceLightStatusBars(isDay);              // Step 79: dark icons in daylight
+        controller.setAppearanceLightNavigationBars(isDay);
     }
 
 

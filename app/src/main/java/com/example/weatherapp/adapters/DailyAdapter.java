@@ -21,6 +21,14 @@ import java.util.List;
 public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.DayViewHolder> {
 
     private final List<DailyItem> items = new ArrayList<>();       // Step 68
+    private boolean nightMode = false;                             // Step 79: dark palette flag
+
+    /** Step 79: switch between the light and dark row palette. */
+    public void setNightMode(boolean night) {
+        if (nightMode == night) return;
+        nightMode = night;
+        notifyDataSetChanged();
+    }
 
     /** Step 68: replace the whole list (7 rows at most). */
     public void submitList(List<DailyItem> newItems) {
@@ -64,6 +72,9 @@ public class DailyAdapter extends RecyclerView.Adapter<DailyAdapter.DayViewHolde
         void bind(DailyItem item) {
 
             tvDayName.setText(item.label);                         // Step 68: "Today" / "Wed"
+
+            tvDayName.setTextColor(nightMode ? 0xFFE6EDF7 : 0xFF172B4D);   // Step 79
+            tvDayRange.setTextColor(nightMode ? 0xFFB7C4D8 : 0xFF172B4D);  // Step 79
 
             if (item.isToday) {                                    // Step 68: first row bold
                 tvDayName.setTypeface(null, android.graphics.Typeface.BOLD);

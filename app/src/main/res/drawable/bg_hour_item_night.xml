@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Step 79: night variant of the hourly cell -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="#1B2432" />
+    <corners android:radius="18dp" />
+</shape>
