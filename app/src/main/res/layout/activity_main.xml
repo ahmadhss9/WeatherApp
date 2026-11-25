@@ -363,156 +363,16 @@
             android:textSize="19sp"
             android:textStyle="bold" />
 
-        <LinearLayout
-            android:id="@+id/dailyForecastContainer"
+        <!-- Steps 68-69: 7-day forecast (RecyclerView, filled at runtime) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDaily"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="13dp"
             android:background="@drawable/bg_detail_card"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <!-- Today -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Today"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
-
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:src="@drawable/day"
-                    android:contentDescription="Sunny" />
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:text="30° / 20°"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#EDF1F7" />
-
-            <!-- Tomorrow -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Tomorrow"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:src="@drawable/cloudy_day_1"
-                    android:contentDescription="Partly cloudy" />
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:text="29° / 21°"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#EDF1F7" />
-
-            <!-- Wednesday -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Wednesday"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:src="@drawable/cloudy"
-                    android:contentDescription="Cloudy" />
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:text="26° / 19°"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="#EDF1F7" />
-
-            <!-- Thursday -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="58dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Thursday"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-                <ImageView
-                    android:layout_width="38dp"
-                    android:layout_height="38dp"
-                    android:src="@drawable/rainy_1"
-                    android:contentDescription="Rainy" />
-
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:gravity="end"
-                    android:text="24° / 18°"
-                    android:textColor="#172B4D"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-        </LinearLayout>
+            android:nestedScrollingEnabled="false"
+            android:padding="12dp"
+            android:scrollbars="none" />
 
     </LinearLayout>
 </ScrollView>

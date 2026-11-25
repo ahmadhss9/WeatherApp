@@ -63,6 +63,13 @@ import androidx.recyclerview.widget.RecyclerView;                  // Step 63
 import com.example.weatherapp.adapters.HourlyAdapter;              // Step 63
 import com.example.weatherapp.models.HourlyItem;                   // Step 63
 import java.util.ArrayList;                                        // Step 64
+import androidx.core.content.ContextCompat;                        // Step 69
+import androidx.recyclerview.widget.DividerItemDecoration;         // Step 69
+import com.example.weatherapp.adapters.DailyAdapter;               // Step 68
+import com.example.weatherapp.models.DailyItem;                    // Step 69
+import java.text.ParseException;                                   // Step 69
+import java.text.SimpleDateFormat;                                 // Step 69
+import java.util.Date;                                             // Step 69
 
 
 public class MainActivity extends AppCompatActivity {
@@ -118,6 +125,8 @@ public class MainActivity extends AppCompatActivity {
     private GeocodingResponse.Result selectedCity;                            // Step 57: chosen city
     private RecyclerView rvHourly;                                            // Step 64: hourly strip
     private final HourlyAdapter hourlyAdapter = new HourlyAdapter();          // Step 63-64
+    private RecyclerView rvDaily;                                             // Step 69: 7-day list
+    private final DailyAdapter dailyAdapter = new DailyAdapter();             // Step 68-69
 
 
     // Step 43: permission dialog result comes back here
@@ -181,6 +190,15 @@ public class MainActivity extends AppCompatActivity {
         rvHourly.setLayoutManager(                                   // Step 64: horizontal list
                 new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
         rvHourly.setAdapter(hourlyAdapter);                          // Step 63-64
+
+        rvDaily = findViewById(R.id.rvDaily);                        // Step 69
+        rvDaily.setLayoutManager(new LinearLayoutManager(this));     // Step 69: vertical
+        rvDaily.setAdapter(dailyAdapter);                            // Step 68-69
+
+        DividerItemDecoration divider =                              // Step 69: row separators
+                new DividerItemDecoration(this, RecyclerView.VERTICAL);
+        divider.setDrawable(ContextCompat.getDrawable(this, R.drawable.divider_daily));
+        rvDaily.addItemDecoration(divider);                          // Step 69
         btnSearch.setOnClickListener(v -> onSearchClicked());        // Step 54
 
         etCitySearch.setOnEditorActionListener((v, actionId, event) -> {   // Step 55
@@ -555,6 +573,50 @@ public class MainActivity extends AppCompatActivity {
         logDaily();                           // Step 67
         renderCurrentWeather();               // Step 30
         renderHourly();                       // Step 64
+        renderDaily();                        // Step 69
+    }
+
+    /** Step 69: fill the 7-day list. */
+    private void renderDaily() {
+
+        if (currentWeather == null || currentWeather.daily == null
+                || currentWeather.daily.size() == 0) {
+            dailyAdapter.submitList(null);                         // Step 69: clear the list
+            Log.w(TAG, "renderDaily: no usable daily data");
+            return;
+        }
+
+        WeatherResponse.Daily d = currentWeather.daily;
+        int days = Math.min(d.size(), 7);                          // Step 69: at most 7 rows
+
+        List<DailyItem> items = new ArrayList<>();                 // Step 69
+
+        for (int i = 0; i < days; i++) {
+            items.add(new DailyItem(
+                    dayLabel(d.time.get(i), i),                    // "Today" / "Tomorrow" / "Friday"
+                    d.temperatureMax.get(i),                       // step 70 reads these
+                    d.temperatureMin.get(i),
+                    d.weatherCode.get(i),
+                    i == 0));                                      // Step 69
+        }
+
+        dailyAdapter.submitList(items);                            // Step 69
+        Log.d(TAG, "Daily cells: " + items.size());
+    }
+
+    /** Step 69: "2026-11-25" -> "Today" / "Tomorrow" / "Friday". */
+    private String dayLabel(String isoDate, int index) {
+
+        if (index == 0) return "Today";                            // Step 69
+        if (index == 1) return "Tomorrow";                         // Step 69
+
+        try {
+            Date date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(isoDate);
+            if (date == null) return isoDate;
+            return new SimpleDateFormat("EEEE", Locale.getDefault()).format(date);   // Step 69
+        } catch (ParseException e) {
+            return isoDate;                                        // unexpected format: show raw
+        }
     }
 
     /** Step 67: prove the daily arrays parsed correctly. */
