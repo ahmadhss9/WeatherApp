@@ -111,6 +111,17 @@
                 app:cornerRadius="14dp" />
         </LinearLayout>
 
+        <!-- Step 56: city search results (hidden until a search returns) -->
+        <LinearLayout
+            android:id="@+id/llSearchResults"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_detail_card"
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:visibility="gone" />
+
         <!-- Main Weather Card -->
         <LinearLayout
             android:layout_width="match_parent"

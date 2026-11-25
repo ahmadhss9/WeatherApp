@@ -51,7 +51,11 @@ import android.widget.EditText;                                          // Step
 import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
 import com.google.android.material.textfield.TextInputEditText;          // Step 54
 import android.view.inputmethod.EditorInfo;                        // Step 55
+import android.view.LayoutInflater;                                // Step 56
+import android.view.View;                                          // Step 56
+import android.widget.LinearLayout;                                // Step 56
 import com.example.weatherapp.models.GeocodingResponse;            // Step 55
+import java.util.List;                                             // Step 56
 
 
 public class MainActivity extends AppCompatActivity {
@@ -89,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
     private com.google.android.material.button.MaterialButton btnSearch;      // Step 54
     private TextInputEditText etCitySearch;                                   // Step 54
+    private LinearLayout llSearchResults;                                     // Step 56: results container
 
 
     // Step 43: permission dialog result comes back here
@@ -146,6 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
         btnSearch = findViewById(R.id.btnSearch);                    // Step 54
         etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
+        llSearchResults = findViewById(R.id.llSearchResults);        // Step 56
         btnSearch.setOnClickListener(v -> onSearchClicked());        // Step 54
 
         etCitySearch.setOnEditorActionListener((v, actionId, event) -> {   // Step 55
@@ -269,6 +275,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         btnSearch.setEnabled(false);                                   // Step 55: block double taps
+        hideSearchResults();                                           // Step 56: clear old list
         Log.d("GEOCODE", "Searching: " + query);
 
         Call<GeocodingResponse> call =
@@ -294,6 +301,7 @@ public class MainActivity extends AppCompatActivity {
 
                 if (body == null || body.results == null || body.results.isEmpty()) {
                     Log.w("GEOCODE", "No matching city for: " + query); // Step 75 empty state
+                    hideSearchResults();                               // Step 56
                     return;
                 }
 
@@ -303,6 +311,8 @@ public class MainActivity extends AppCompatActivity {
                     Log.d("GEOCODE", "  " + r.label()
                             + "  (" + r.latitude + ", " + r.longitude + ")");
                 }
+
+                showSearchResults(body.results);                       // Step 56: draw the list
             }
 
             @Override
@@ -312,6 +322,44 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+    /** Step 56: draw one tappable row per matching city. */
+    private void showSearchResults(List<GeocodingResponse.Result> results) {
+
+        llSearchResults.removeAllViews();                              // Step 56: no stale rows
+
+        if (results == null || results.isEmpty()) {                    // Step 56
+            llSearchResults.setVisibility(View.GONE);
+            return;
+        }
+
+        LayoutInflater inflater = LayoutInflater.from(this);            // Step 56
+        llSearchResults.setVisibility(View.VISIBLE);                   // Step 56
+
+        for (GeocodingResponse.Result r : results) {
+
+            View row = inflater.inflate(R.layout.item_city_result, llSearchResults, false);
+
+            TextView tvName = row.findViewById(R.id.tvCityName);       // Step 56
+            TextView tvCoords = row.findViewById(R.id.tvCityCoords);   // Step 56
+
+            tvName.setText(r.label());                                 // Step 56: "Lahore, Punjab, Pakistan"
+            tvCoords.setText(String.format(Locale.US, "%.2f, %.2f",   // Step 56
+                    r.latitude, r.longitude));
+
+            row.setOnClickListener(v ->                                 // Step 57 target
+                    Log.d("GEOCODE", "Selected: " + r.label()));
+
+            llSearchResults.addView(row);                              // Step 56
+        }
+    }
+
+    /** Step 56: collapse and empty the results list. */
+    private void hideSearchResults() {
+
+        llSearchResults.removeAllViews();                              // Step 56
+        llSearchResults.setVisibility(View.GONE);                      // Step 56
+    }
+
     /** Step 47: geocode the coordinates and write the city on screen. */
     private void showCity(double lat, double lon) {
 
