@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Step 63: one hour cell in the hourly forecast strip -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="78dp"
+    android:layout_height="120dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/bg_hour_item"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <!-- Step 63: "NOW" or "3 PM" -->
+    <TextView
+        android:id="@+id/tvHourTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#718096"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Step 63: icon from WeatherCodeIconMapper -->
+    <ImageView
+        android:id="@+id/ivHourIcon"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginTop="9dp"
+        android:contentDescription="Hourly weather"
+        android:scaleType="fitCenter" />
+
+    <!-- Step 63: temperature, whole degrees -->
+    <TextView
+        android:id="@+id/tvHourTemp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textColor="#172B4D"
+        android:textSize="17sp"
+        android:textStyle="bold" />
+
+</LinearLayout>
