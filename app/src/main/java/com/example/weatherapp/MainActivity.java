@@ -58,6 +58,11 @@ import android.view.View;                                          // Step 56
 import android.widget.LinearLayout;                                // Step 56
 import com.example.weatherapp.models.GeocodingResponse;            // Step 55
 import java.util.List;                                             // Step 56
+import androidx.recyclerview.widget.LinearLayoutManager;           // Step 63
+import androidx.recyclerview.widget.RecyclerView;                  // Step 63
+import com.example.weatherapp.adapters.HourlyAdapter;              // Step 63
+import com.example.weatherapp.models.HourlyItem;                   // Step 63
+import java.util.ArrayList;                                        // Step 64
 
 
 public class MainActivity extends AppCompatActivity {
@@ -107,6 +112,8 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText etCitySearch;                                   // Step 54
     private LinearLayout llSearchResults;                                     // Step 56: results container
     private GeocodingResponse.Result selectedCity;                            // Step 57: chosen city
+    private RecyclerView rvHourly;                                            // Step 64: hourly strip
+    private final HourlyAdapter hourlyAdapter = new HourlyAdapter();          // Step 63-64
 
 
     // Step 43: permission dialog result comes back here
@@ -165,6 +172,11 @@ public class MainActivity extends AppCompatActivity {
         btnSearch = findViewById(R.id.btnSearch);                    // Step 54
         etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
         llSearchResults = findViewById(R.id.llSearchResults);        // Step 56
+
+        rvHourly = findViewById(R.id.rvHourly);                      // Step 64
+        rvHourly.setLayoutManager(                                   // Step 64: horizontal list
+                new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
+        rvHourly.setAdapter(hourlyAdapter);                          // Step 63-64
         btnSearch.setOnClickListener(v -> onSearchClicked());        // Step 54
 
         etCitySearch.setOnEditorActionListener((v, actionId, event) -> {   // Step 55
@@ -537,6 +549,64 @@ public class MainActivity extends AppCompatActivity {
         logWeather(currentWeather.current);   // Step 29
         logHourly();                          // Step 62
         renderCurrentWeather();               // Step 30
+        renderHourly();                       // Step 64
+    }
+
+    /** Step 64: fill the horizontal strip with the next 24 hours. */
+    private void renderHourly() {
+
+        if (currentWeather == null || currentWeather.hourly == null
+                || currentWeather.hourly.size() == 0) {
+            hourlyAdapter.submitList(null);                        // Step 64: clear the strip
+            Log.w(TAG, "renderHourly: no usable hourly data");
+            return;
+        }
+
+        WeatherResponse.Hourly h = currentWeather.hourly;
+        int hours = h.size();                                      // Step 61: safe length
+
+        // Step 64: start at the hour we are in, using the API's own clock
+        int start = 0;
+        if (currentWeather.current != null && currentWeather.current.time != null) {
+            String nowPrefix = currentWeather.current.time.substring(0, 13);   // "2026-11-25T10"
+            for (int i = 0; i < hours; i++) {
+                if (h.time.get(i).startsWith(nowPrefix)) {
+                    start = i;
+                    break;
+                }
+            }
+        }
+
+        int end = Math.min(start + 24, hours);                     // Step 64: at most 24 cells
+
+        List<HourlyItem> items = new ArrayList<>();                // Step 64
+
+        for (int i = start; i < end; i++) {
+            items.add(new HourlyItem(
+                    hourLabel(h.time.get(i), i == start),          // "NOW" / "10 PM"
+                    h.temperature.get(i),
+                    h.weatherCode.get(i),
+                    h.isDay.get(i) == 1,
+                    i == start));                                  // Step 64
+        }
+
+        hourlyAdapter.submitList(items);                           // Step 64
+        Log.d(TAG, "Hourly cells: " + items.size() + " (start index " + start + ")");
+    }
+
+    /** Step 64: "2026-11-25T22:00" -> "NOW" or "10 PM". */
+    private String hourLabel(String isoTime, boolean isNow) {
+
+        if (isNow) return "NOW";                                   // Step 64
+
+        try {
+            int hour = Integer.parseInt(isoTime.substring(11, 13));   // "22"
+            int hour12 = hour % 12;
+            if (hour12 == 0) hour12 = 12;                          // 0 -> 12 AM, 12 -> 12 PM
+            return hour12 + (hour < 12 ? " AM" : " PM");           // Step 64
+        } catch (RuntimeException e) {
+            return isoTime;                                        // unexpected format: show raw
+        }
     }
 
     /** Step 62: prove the hourly arrays parsed correctly. */
