@@ -56,6 +56,8 @@ import android.widget.ProgressBar;                                      // Step 
 import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
 import com.google.android.material.textfield.TextInputEditText;          // Step 54
 import android.view.inputmethod.EditorInfo;                        // Step 55
+import android.view.MotionEvent;                                   // Step 77
+import android.widget.ScrollView;                                  // Step 77
 import android.view.inputmethod.InputMethodManager;                // Step 57
 import android.view.LayoutInflater;                                // Step 56
 import android.view.View;                                          // Step 56
@@ -188,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
         llError = findViewById(R.id.llError);        // Step 73
         btnRetry = findViewById(R.id.btnRetry);      // Step 73
         btnRetry.setOnClickListener(v -> retryLastRequest());   // Step 73
+
+        setupPullToRefresh();                            // Step 77
         btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
         btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
@@ -726,6 +730,49 @@ public class MainActivity extends AppCompatActivity {
         NetworkCapabilities caps = cm.getNetworkCapabilities(network);   // Step 74
         return caps != null
                 && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
+    }
+
+    /** Step 77: drag down from the very top to refresh, without a new dependency. */
+    private void setupPullToRefresh() {
+
+        ScrollView scroll = findViewById(R.id.main);              // Step 77: the root ScrollView
+
+        final float threshold =
+                24 * getResources().getDisplayMetrics().density;   // ~24dp drag
+        final float[] startY = {0f};                               // where the finger went down
+        final boolean[] armed = {false};                           // start only from scrollY == 0
+
+        scroll.setOnTouchListener((v, event) -> {
+
+            switch (event.getActionMasked()) {
+
+                case MotionEvent.ACTION_DOWN:                      // Step 77
+                    startY[0] = event.getY();
+                    armed[0] = scroll.getScrollY() == 0;
+                    break;
+
+                case MotionEvent.ACTION_MOVE:                      // Step 77
+                    if (armed[0]
+                            && scroll.getScrollY() == 0
+                            && event.getY() - startY[0] > threshold) {
+
+                        armed[0] = false;                          // one trigger per drag
+
+                        if (activeRequests == 0) {
+                            Log.d("REFRESH", "Pull-to-refresh triggered");   // Step 77
+                            refreshWeather();
+                        }
+                    }
+                    break;
+
+                case MotionEvent.ACTION_UP:                        // Step 77
+                case MotionEvent.ACTION_CANCEL:
+                    armed[0] = false;
+                    break;
+            }
+
+            return false;                                          // let the ScrollView scroll normally
+        });
     }
 
     /** Step 73: repeat whichever request failed last. */
