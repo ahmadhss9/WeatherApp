@@ -452,6 +452,7 @@ public class MainActivity extends AppCompatActivity {
             lastFailedSearch = true;                                   // Step 73: retry should re-search
             Log.w("GEOCODE", "Offline — skipping city search");
             showError("You're offline — city search needs an internet connection.");   // Step 74
+            endRequest();                                              // Step 86: stop spinner & unlock buttons
             return;
         }
 
@@ -729,7 +730,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /** Step 74: is there a usable internet connection right now? */
-    private boolean isOnline() {
+    boolean isOnline() {                                               // Step 86: package-private for test
 
         ConnectivityManager cm =
                 (ConnectivityManager) getSystemService(CONNECTIVITY_SERVICE);   // Step 74
