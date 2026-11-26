@@ -56,7 +56,7 @@
                 android:contentDescription="Weather"
                 android:scaleType="fitCenter" /><!-- Step 40  id headerweather-->
 
-            <!-- Step 71: shows while any request is in flight -->
+            <!-- Step 71: shows while any request is in flight (including pull-to-refresh) -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyleSmall"
@@ -66,27 +66,28 @@
                 android:indeterminateTint="#2F6FED"
                 android:visibility="gone" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRefresh"
-                android:layout_width="wrap_content"
+            <!-- Search lens icon button: opens/closes the collapsible search bar -->
+            <ImageButton
+                android:id="@+id/btnToggleSearch"
+                android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:layout_marginStart="10dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:minWidth="0dp"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp"
-                android:text="Refresh"
-                android:textSize="12sp"
-                app:cornerRadius="20dp" /><!-- Step 49 -->
+                android:background="@drawable/bg_icon_pill"
+                android:contentDescription="Search city"
+                android:padding="13dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_search" />
         </LinearLayout>
-        <!-- Steps 53-54: city search row -->
+
+        <!-- Steps 53-54: collapsible city search row (shown when search lens is tapped) -->
         <LinearLayout
+            android:id="@+id/llSearchBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="14dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:visibility="gone">
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/searchLayout"
@@ -171,7 +172,7 @@
             android:id="@+id/cardMain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="18dp"
             android:background="@drawable/bg_weather_card"
             android:focusable="true"
             android:orientation="vertical"
@@ -276,48 +277,49 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="22dp"
             android:id="@+id/tvDetailsHeading"
             android:text="Weather Details"
             android:textColor="#172B4D"
             android:textSize="19sp"
             android:textStyle="bold" />
 
-        <!-- Weather Details Cards -->
+        <!-- Weather Details Cards (3-column balanced grid: Humidity, Wind, Precipitation) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="13dp"
+            android:layout_marginTop="12dp"
             android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/cardHumidity"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:minHeight="105dp"
-                android:layout_marginEnd="7dp"
+                android:minHeight="92dp"
+                android:layout_marginEnd="6dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_detail_card"
                 android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="15dp">
+                android:padding="13dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="HUMIDITY"
                     android:textColor="#8493A8"
-                    android:textSize="11sp"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvHumidity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:maxLines="1"
                     android:text="65%"
                     android:textColor="#172B4D"
-                    android:textSize="23sp"
+                    android:textSize="19sp"
                     android:textStyle="bold" />
 
             </LinearLayout>
@@ -326,65 +328,69 @@
                 android:id="@+id/cardWind"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:minHeight="105dp"
-                android:layout_marginStart="7dp"
+                android:minHeight="92dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_detail_card"
                 android:gravity="center_vertical"
                 android:orientation="vertical"
-                android:padding="15dp">
+                android:padding="13dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="WIND SPEED"
                     android:textColor="#8493A8"
-                    android:textSize="11sp"
+                    android:textSize="10sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvWindSpeed"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="8dp"
+                    android:maxLines="1"
                     android:text="12 km/h"
                     android:textColor="#172B4D"
-                    android:textSize="23sp"
+                    android:textSize="17sp"
                     android:textStyle="bold" />
 
             </LinearLayout>
 
-        </LinearLayout>
-
-        <!-- Step 34: precipitation card -->
-        <LinearLayout
-            android:id="@+id/cardPrecipitation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="105dp"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/bg_detail_card"
-            android:gravity="center_vertical"
-            android:orientation="vertical"
-            android:padding="15dp">
-
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Step 34: precipitation card -->
+            <LinearLayout
+                android:id="@+id/cardPrecipitation"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="PRECIPITATION"
-                android:textColor="#8493A8"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+                android:minHeight="92dp"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_detail_card"
+                android:gravity="center_vertical"
+                android:orientation="vertical"
+                android:padding="13dp">
 
-            <TextView
-                android:id="@+id/tvPrecipitation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="0.0 mm"
-                android:textColor="#172B4D"
-                android:textSize="23sp"
-                android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="PRECIPITATION"
+                    android:textColor="#8493A8"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPrecipitation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:maxLines="1"
+                    android:text="0.0 mm"
+                    android:textColor="#172B4D"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -392,7 +398,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="22dp"
             android:id="@+id/tvHourlyHeading"
             android:text="Hourly Forecast"
             android:textColor="#172B4D"
@@ -418,7 +424,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="22dp"
             android:id="@+id/tvDailyHeading"
             android:text="7-Day Forecast"
             android:textColor="#172B4D"

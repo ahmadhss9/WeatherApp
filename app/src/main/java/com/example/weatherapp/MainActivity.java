@@ -31,6 +31,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import java.util.Locale;
 import com.example.weatherapp.utils.WeatherCodeMapper; //step 35
+import android.widget.ImageButton;                                       // UI redesign: search lens button
 import android.widget.ImageView;                    // Step 36
 import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
 import com.example.weatherapp.utils.LocationHelper;   // Step 41
@@ -126,7 +127,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean locationResolved = false;                // Step 45: did GPS answer?
 
     private boolean hadPermission;              // Step 50: permission state at last check
-    private MaterialButton btnRefresh;               // Step 49 + 90: refresh button
+    private ImageButton btnToggleSearch;             // UI redesign: search lens button in header
+    private LinearLayout llSearchBar;                // UI redesign: collapsible search bar
     private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
     private double lastLon = DEFAULT_LON;
 
@@ -190,9 +192,7 @@ public class MainActivity extends AppCompatActivity {
         btnRetry = findViewById(R.id.btnRetry);      // Step 73
         btnRetry.setOnClickListener(v -> retryLastRequest());   // Step 73
 
-        setupPullToRefresh();                            // Step 77
-        btnRefresh = findViewById(R.id.btnRefresh);          // Step 49
-        btnRefresh.setOnClickListener(v -> refreshWeather()); // Step 49
+        setupPullToRefresh();                            // Step 77: pull down anywhere at top to refresh
         tvWindSpeed = findViewById(R.id.tvWindSpeed);   // Step 33
         tvPrecipitation = findViewById(R.id.tvPrecipitation);   // Step 34
         tvCondition = findViewById(R.id.tvCondition); //step 35
@@ -204,10 +204,14 @@ public class MainActivity extends AppCompatActivity {
 
         hadPermission = locationHelper.hasPermission();   // Step 50: remember current state
 
+        btnToggleSearch = findViewById(R.id.btnToggleSearch);        // UI redesign: header search lens
+        llSearchBar = findViewById(R.id.llSearchBar);                // UI redesign: hidden until tapped
         btnSearch = findViewById(R.id.btnSearch);                    // Step 54
         searchLayout = findViewById(R.id.searchLayout);              // Step 87
         etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
         llSearchResults = findViewById(R.id.llSearchResults);        // Step 56
+
+        btnToggleSearch.setOnClickListener(v -> toggleSearchBar());  // UI redesign: show/hide search bar
 
         rvHourly = findViewById(R.id.rvHourly);                      // Step 64
         rvHourly.setLayoutManager(                                   // Step 64: horizontal list
@@ -543,6 +547,30 @@ public class MainActivity extends AppCompatActivity {
         llSearchResults.setVisibility(View.VISIBLE);                   // Step 75
     }
 
+    /** UI redesign: toggle the collapsible search bar from the header search lens. */
+    private void toggleSearchBar() {
+        boolean show = llSearchBar.getVisibility() != View.VISIBLE;
+        setSearchBarVisible(show);
+    }
+
+    /** UI redesign: show or collapse the search bar and manage focus/keyboard cleanly. */
+    private void setSearchBarVisible(boolean visible) {
+        if (visible) {
+            llSearchBar.setVisibility(View.VISIBLE);
+            etCitySearch.requestFocus();
+            InputMethodManager imm =
+                    (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(etCitySearch, InputMethodManager.SHOW_IMPLICIT);
+            }
+        } else {
+            llSearchBar.setVisibility(View.GONE);
+            hideSearchResults();
+            etCitySearch.clearFocus();
+            hideKeyboard();
+        }
+    }
+
     /** Step 57: the user tapped one of the matching cities. */
     private void onCitySelected(GeocodingResponse.Result city) {
 
@@ -552,12 +580,9 @@ public class MainActivity extends AppCompatActivity {
         selectedCity = city;                                          // Step 57: remember the choice
         saveSelectedCity(city);                                       // Step 59: persist it
 
-        hideSearchResults();                                          // Step 57
-        hideKeyboard();                                               // Step 57
-
         tvLocation.setText(city.label());                             // Step 57: header shows the choice
         etCitySearch.setText(city.name);                              // Step 57: keep the name, not the region
-        etCitySearch.clearFocus();                                    // Step 57: no cursor blinking
+        setSearchBarVisible(false);                                   // UI redesign: collapse bar & keyboard
 
         loadSelectedCityWeather();                                    // Step 58: fetch this city
     }
@@ -778,6 +803,10 @@ public class MainActivity extends AppCompatActivity {
                     break;
 
                 case MotionEvent.ACTION_MOVE:                      // Step 77
+                    if (!armed[0] && scroll.getScrollY() == 0) {   // UI redesign: arm even if drag started on child card
+                        startY[0] = event.getY();
+                        armed[0] = true;
+                    }
                     if (armed[0]
                             && scroll.getScrollY() == 0
                             && event.getY() - startY[0] > threshold) {
@@ -825,7 +854,7 @@ public class MainActivity extends AppCompatActivity {
     private void setLoading(boolean loading) {
 
         progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
-        btnRefresh.setEnabled(!loading);
+        btnToggleSearch.setEnabled(!loading);                        // UI redesign: search lens button
         btnSearch.setEnabled(!loading);
     }
 
@@ -1116,7 +1145,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.main).setBackgroundColor(pageBg);          // Step 79
 
         int[] cardIds = {R.id.cardHumidity, R.id.cardWind,            // Step 79
-                R.id.cardPrecipitation, R.id.rvDaily, R.id.llSearchResults};
+                R.id.cardPrecipitation, R.id.rvDaily, R.id.llSearchResults,
+                R.id.btnToggleSearch};                               // UI redesign: pill button follows theme
 
         for (int id : cardIds) {
 
@@ -1135,6 +1165,7 @@ public class MainActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.tvHourlyHeading)).setTextColor(heading);
         ((TextView) findViewById(R.id.tvDailyHeading)).setTextColor(heading);
 
+        btnToggleSearch.setColorFilter(value);                       // UI redesign: search lens tint
         tvLocation.setTextColor(value);                              // Step 79
         tvHumidity.setTextColor(value);
         tvWindSpeed.setTextColor(value);
@@ -1200,7 +1231,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Step 72: tell the user, not just Logcat
-        showError("Weather request failed (HTTP " + code + "). Tap Refresh to retry.");
+        showError("Weather request failed (HTTP " + code + "). Pull down to refresh.");
     }
 
     /** Step 28 — never reached the server. */
@@ -1208,13 +1239,13 @@ public class MainActivity extends AppCompatActivity {
 
         if (t instanceof UnknownHostException) {
             Log.e(TAG, "No internet or DNS failure", t);
-            showError("No internet connection. Turn on Wi-Fi or mobile data, then tap Refresh.");  // Step 72
+            showError("No internet connection. Turn on Wi-Fi or mobile data, then pull down to refresh.");  // Step 72
         } else if (t instanceof SocketTimeoutException) {
             Log.e(TAG, "Request timed out", t);
-            showError("The weather service is slow right now. Tap Refresh to try again.");        // Step 72
+            showError("The weather service is slow right now. Pull down to refresh.");        // Step 72
         } else if (t instanceof IOException) {
             Log.e(TAG, "I/O problem during request", t);
-            showError("Connection problem. Tap Refresh to try again.");                           // Step 72
+            showError("Connection problem. Pull down to refresh.");                           // Step 72
         } else {
             Log.e(TAG, "Unexpected failure", t);
             showError("Something went wrong while loading the weather.");                         // Step 72

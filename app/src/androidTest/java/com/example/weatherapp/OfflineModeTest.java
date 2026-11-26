@@ -145,8 +145,7 @@ public class OfflineModeTest {
             onView(withId(R.id.tvError)).check(matches(withText(
                     "You're offline. Showing the last loaded weather. Tap Retry when you're back online.")));
             onView(withId(R.id.progressBar)).check(matches(not(isDisplayed())));
-            onView(withId(R.id.btnRefresh)).check(matches(isEnabled()));
-            onView(withId(R.id.btnSearch)).check(matches(isEnabled()));
+            onView(withId(R.id.btnToggleSearch)).check(matches(isEnabled()));
         }
     }
 
@@ -160,6 +159,7 @@ public class OfflineModeTest {
         try (ActivityScenario<MainActivity> ignored =
                      ActivityScenario.launch(MainActivity.class)) {
 
+            onView(withId(R.id.btnToggleSearch)).perform(click());
             onView(withId(R.id.etCitySearch))
                     .perform(replaceText("London"), closeSoftKeyboard());
             onView(withId(R.id.btnSearch)).perform(click());
@@ -169,7 +169,7 @@ public class OfflineModeTest {
                     "You're offline — city search needs an internet connection.")));
             onView(withId(R.id.progressBar)).check(matches(not(isDisplayed())));
             onView(withId(R.id.btnSearch)).check(matches(isEnabled()));
-            onView(withId(R.id.btnRefresh)).check(matches(isEnabled()));
+            onView(withId(R.id.btnToggleSearch)).check(matches(isEnabled()));
 
             onView(withId(R.id.btnRetry)).perform(click());
 
