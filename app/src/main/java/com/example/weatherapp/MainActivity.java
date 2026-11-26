@@ -36,6 +36,7 @@ import com.example.weatherapp.utils.WeatherCodeIconMapper;   // Step 36
 import com.example.weatherapp.utils.LocationHelper;   // Step 41
 
 import android.Manifest;                                                        // Step 43
+import android.content.res.ColorStateList;                                       // Step 87
 import android.graphics.drawable.Drawable;                                     // Step 79
 import androidx.core.view.WindowCompat;                                        // Step 79
 import androidx.core.view.WindowInsetsControllerCompat;                        // Step 79
@@ -45,19 +46,12 @@ import android.net.Network;                                                    /
 import android.net.NetworkCapabilities;                                        // Step 74
 import androidx.activity.result.ActivityResultLauncher;                         // Step 43
 import androidx.activity.result.contract.ActivityResultContracts;               // Step 43
-import android.annotation.SuppressLint;                    // Step 44
-import android.location.Location;                          // Step 44
 import android.os.Looper;                                  // Step 44
-
-import com.google.android.gms.location.LocationCallback;   // Step 44
-import com.google.android.gms.location.LocationRequest;    // Step 44
-import com.google.android.gms.location.LocationResult;     // Step 44
-import com.google.android.gms.location.Priority;           // Step 44
 import android.os.Handler;                                  // Step 45
-import android.widget.EditText;                                          // Step 54
 import android.widget.ProgressBar;                                      // Step 71
-import com.google.android.material.button.MaterialButton;                // Step 54 (or use FQN as btnRefresh does)
+import com.google.android.material.button.MaterialButton;                // Step 54 + 90
 import com.google.android.material.textfield.TextInputEditText;          // Step 54
+import com.google.android.material.textfield.TextInputLayout;            // Step 87
 import android.view.inputmethod.EditorInfo;                        // Step 55
 import android.view.MotionEvent;                                   // Step 77
 import android.widget.ScrollView;                                  // Step 77
@@ -84,8 +78,8 @@ import java.util.Date;                                             // Step 69
 
 public class MainActivity extends AppCompatActivity {
 
-    // Step 26 — Logcat filter name
-    private static final String TAG = "WEATHER_TEST";
+    // Step 26 + 88 — Logcat filter name (cleaned from WEATHER_TEST)
+    private static final String TAG = "WEATHER";
 
     // Step 26 — fields to request (must match API names exactly)
     private static final String CURRENT_FIELDS =
@@ -122,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView tvHighLow;                      // Step 70: today's high / low
     private TextView tvError;                        // Step 72: error banner
     private LinearLayout llError;                    // Step 73: banner container
-    private com.google.android.material.button.MaterialButton btnRetry;   // Step 73: retry button
+    private MaterialButton btnRetry;                   // Step 73 + 90: retry button
     private String lastSearchQuery;                  // Step 73: what to retry
     private boolean lastFailedSearch;                // Step 73: which op failed
     private boolean nightTheme = false;              // Step 79: current palette
@@ -132,11 +126,12 @@ public class MainActivity extends AppCompatActivity {
     private boolean locationResolved = false;                // Step 45: did GPS answer?
 
     private boolean hadPermission;              // Step 50: permission state at last check
-    private com.google.android.material.button.MaterialButton btnRefresh;   // Step 49: refresh button
+    private MaterialButton btnRefresh;               // Step 49 + 90: refresh button
     private double lastLat = DEFAULT_LAT;            // Step 48: coords last requested
     private double lastLon = DEFAULT_LON;
 
-    private com.google.android.material.button.MaterialButton btnSearch;      // Step 54
+    private MaterialButton btnSearch;                // Step 54 + 90
+    private TextInputLayout searchLayout;            // Step 87: themed search box
     private TextInputEditText etCitySearch;                                   // Step 54
     private LinearLayout llSearchResults;                                     // Step 56: results container
     private GeocodingResponse.Result selectedCity;                            // Step 57: chosen city
@@ -210,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
         hadPermission = locationHelper.hasPermission();   // Step 50: remember current state
 
         btnSearch = findViewById(R.id.btnSearch);                    // Step 54
+        searchLayout = findViewById(R.id.searchLayout);              // Step 87
         etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
         llSearchResults = findViewById(R.id.llSearchResults);        // Step 56
 
@@ -217,13 +213,13 @@ public class MainActivity extends AppCompatActivity {
         rvHourly.setLayoutManager(                                   // Step 64: horizontal list
                 new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false));
         rvHourly.setAdapter(hourlyAdapter);                          // Step 63-64
-        rvHourly.setHasFixedSize(true);                              // Step 78: fixed 120dp cells
+        rvHourly.setHasFixedSize(true);                              // Step 78: fixed width cells
         rvHourly.setNestedScrollingEnabled(false);                   // Step 78: vertical scroll is the page's job
 
         rvDaily = findViewById(R.id.rvDaily);                        // Step 69
         rvDaily.setLayoutManager(new LinearLayoutManager(this));     // Step 69: vertical
         rvDaily.setAdapter(dailyAdapter);                            // Step 68-69
-        rvDaily.setHasFixedSize(true);                               // Step 78: fixed 58dp rows
+        rvDaily.setHasFixedSize(false);                              // Step 78 + 87: wrap_content height must re-measure on update
         rvDaily.setNestedScrollingEnabled(false);                    // Step 78: no nested vertical scroll
 
         DividerItemDecoration divider =                              // Step 69: row separators
@@ -246,8 +242,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-//
-//       fetchCurrentWeather(31.418, 73.079);   // (removed this)Faisalabad for now (GPS later: step 48)
+        // Step 88: temporary hardcoded launch call removed
         if (restoreSavedCity()) {                 // Step 60: saved city wins
             loadSelectedCityWeather();            // Step 60: weather for the saved city
         } else {
@@ -341,21 +336,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         Log.d("LOCATION", "IP fallback started (" + reason + ")");   // Step 76
-        beginRequest();                                              // Step 71: spinner
 
         Call<IpLocationResponse> call = RetrofitClient.getIpLocationApi().getLocation();
-        Log.d("LOCATION", "IP URL: " + call.request().url());        // Step 76
 
-        call.enqueue(new Callback<IpLocationResponse>() {
+        enqueueApiCall("LOCATION", call, new ApiResponseHandler<IpLocationResponse>() {   // Step 89: shared Retrofit wrapper
 
             @Override
-            public void onResponse(Call<IpLocationResponse> call,
-                                   Response<IpLocationResponse> response) {
-
-                endRequest();                                        // Step 71
-                IpLocationResponse body = response.body();
-
-                if (!response.isSuccessful() || body == null || !body.success
+            public void onSuccess(IpLocationResponse body) {
+                if (body == null || !body.success
                         || (body.latitude == 0.0 && body.longitude == 0.0)) {
                     Log.w("LOCATION", "IP fallback failed");         // Step 76
                     useDefaultCity(reason + " + ip failed");
@@ -374,8 +362,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<IpLocationResponse> call, Throwable t) {
-                endRequest();                                        // Step 71
+            public void onHttpError(int code, ResponseBody errorBody) {
+                Log.w("LOCATION", "IP fallback HTTP " + code);       // Step 76 + 89
+                useDefaultCity(reason + " + ip failed");
+            }
+
+            @Override
+            public void onNetworkError(Throwable t) {
                 Log.w("LOCATION", "IP fallback network failure: " + t);
                 useDefaultCity(reason + " + ip error");              // Step 76
             }
@@ -441,7 +434,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        beginRequest();                                                // Step 71: spinner + lock buttons
         hideSearchResults();                                           // Step 56: clear old list
         Log.d("GEOCODE", "Searching: " + query);
 
@@ -452,34 +444,17 @@ public class MainActivity extends AppCompatActivity {
             lastFailedSearch = true;                                   // Step 73: retry should re-search
             Log.w("GEOCODE", "Offline — skipping city search");
             showError("You're offline — city search needs an internet connection.");   // Step 74
-            endRequest();                                              // Step 86: stop spinner & unlock buttons
-            return;
+            return;                                                    // Step 86 + 89: no request started
         }
 
         Call<GeocodingResponse> call =
                 RetrofitClient.getGeocodingApi()
                         .searchCities(query, 5, "en", "json");         // Step 55
 
-        Log.d("GEOCODE", "Request URL: " + call.request().url());      // Step 55
-
-        call.enqueue(new Callback<GeocodingResponse>() {
+        enqueueApiCall("GEOCODE", call, new ApiResponseHandler<GeocodingResponse>() {   // Step 89: shared Retrofit wrapper
 
             @Override
-            public void onResponse(Call<GeocodingResponse> call,
-                                   Response<GeocodingResponse> response) {
-
-                endRequest();                                          // Step 71
-
-                if (!response.isSuccessful()) {
-                    Log.e("GEOCODE", "HTTP " + response.code());       // step 72 shows it
-                    lastFailedSearch = true;                           // Step 73
-                    showError("City search failed (HTTP " + response.code()
-                            + "). Tap Retry.");                        // Step 72-73
-                    return;
-                }
-
-                GeocodingResponse body = response.body();
-
+            public void onSuccess(GeocodingResponse body) {
                 if (body == null || body.results == null || body.results.isEmpty()) {
                     Log.w("GEOCODE", "No matching city for: " + query); // Step 75 empty state
                     showNoCityFound(query);                            // Step 75: tell the user
@@ -497,8 +472,15 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<GeocodingResponse> call, Throwable t) {
-                endRequest();                                          // Step 71
+            public void onHttpError(int code, ResponseBody errorBody) {
+                Log.e("GEOCODE", "HTTP " + code);                      // step 72 shows it
+                lastFailedSearch = true;                               // Step 73
+                showError("City search failed (HTTP " + code
+                        + "). Tap Retry.");                            // Step 72-73
+            }
+
+            @Override
+            public void onNetworkError(Throwable t) {
                 Log.e("GEOCODE", "Search failed: " + t);               // Step 74 offline case
                 lastFailedSearch = true;                               // Step 73
                 showError("City search failed — check your internet and try again.");   // Step 72
@@ -654,6 +636,11 @@ public class MainActivity extends AppCompatActivity {
 
         locationHelper.resolveCityName(lat, lon, city -> {
 
+            if (selectedCity != null) {                                  // Step 87: never overwrite a user-chosen city
+                Log.d("LOCATION", "Ignoring late geocode — city already selected");
+                return;
+            }
+
             Log.d("LOCATION", "City: " + city);                          // Step 46
 
             tvLocation.setText(city != null ? city : "Unknown location"); // Step 47
@@ -681,29 +668,55 @@ public class MainActivity extends AppCompatActivity {
         //                                  current ─┘   hourly ─┘     daily ─┘        tz    forecast_days=7
         //  7 days for the weekly list (step 69); the hourly strip slices the first 24 in step 64
 
-        Log.d(TAG, "Request URL: " + call.request().url());
-
-        beginRequest();                                              // Step 71: spinner + lock buttons
-
-        call.enqueue(new Callback<WeatherResponse>() {
+        enqueueApiCall(TAG, call, new ApiResponseHandler<WeatherResponse>() {   // Step 89: shared Retrofit wrapper
 
             @Override
-            public void onResponse(Call<WeatherResponse> call,
-                                   Response<WeatherResponse> response) {
-
-                if (response.isSuccessful()) {
-                    handleSuccess(response.body());                          // Step 27
-                } else {
-                    handleHttpError(response.code(), response.errorBody());  // Step 28
-                }
-
-                endRequest();                                                // Step 71
+            public void onSuccess(WeatherResponse body) {
+                handleSuccess(body);                                           // Step 27
             }
 
             @Override
-            public void onFailure(Call<WeatherResponse> call, Throwable t) {
-                handleNetworkFailure(t);                                     // Step 28
-                endRequest();                                                // Step 71
+            public void onHttpError(int code, ResponseBody errorBody) {
+                handleHttpError(code, errorBody);                              // Step 28
+            }
+
+            @Override
+            public void onNetworkError(Throwable t) {
+                handleNetworkFailure(t);                                       // Step 28
+            }
+        });
+    }
+
+    /** Step 89: contract for handling a finished Retrofit call on the main thread. */
+    private interface ApiResponseHandler<T> {
+        void onSuccess(T body);
+        void onHttpError(int code, ResponseBody errorBody);
+        void onNetworkError(Throwable t);
+    }
+
+    /** Step 89: shared Retrofit enqueue wrapper — logs URL, manages spinner, routes response/failure. */
+    private <T> void enqueueApiCall(String logTag, Call<T> call, ApiResponseHandler<T> handler) {
+
+        Log.d(logTag, "Request URL: " + call.request().url());                 // Step 89
+        beginRequest();                                                        // Step 71 + 89: spinner + lock buttons
+
+        call.enqueue(new Callback<T>() {
+
+            @Override
+            public void onResponse(Call<T> call, Response<T> response) {
+                endRequest();                                                  // Step 71 + 89
+
+                if (response.isSuccessful()) {
+                    handler.onSuccess(response.body());
+                } else {
+                    handler.onHttpError(response.code(), response.errorBody());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<T> call, Throwable t) {
+                endRequest();                                                  // Step 71 + 89
+                handler.onNetworkError(t);
             }
         });
     }
@@ -855,12 +868,18 @@ public class MainActivity extends AppCompatActivity {
         List<DailyItem> items = new ArrayList<>();                 // Step 69
 
         for (int i = 0; i < days; i++) {
+            String date = d.time.get(i);
+            Double max = d.temperatureMax.get(i);
+            Double min = d.temperatureMin.get(i);
+            Integer code = d.weatherCode.get(i);
+            if (date == null || max == null || min == null || code == null) continue;   // Step 87: skip null element
+
             items.add(new DailyItem(
-                    dayLabel(d.time.get(i), i),                    // "Today" / "Tomorrow" / "Friday"
-                    d.temperatureMax.get(i),                       // step 70 reads these
-                    d.temperatureMin.get(i),
-                    d.weatherCode.get(i),
-                    i == 0));                                      // Step 69
+                    dayLabel(date, items.size()),                  // "Today" / "Tomorrow" / "Friday"
+                    max,                                           // step 70 reads these
+                    min,
+                    code,
+                    items.isEmpty()));                             // Step 69
         }
 
         dailyAdapter.submitList(items);                            // Step 69
@@ -872,6 +891,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (index == 0) return "Today";                            // Step 69
         if (index == 1) return "Tomorrow";                         // Step 69
+        if (isoDate == null) return "";                            // Step 87: guard null date
 
         try {
             Date date = new SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(isoDate);
@@ -918,10 +938,12 @@ public class MainActivity extends AppCompatActivity {
 
         // Step 64: start at the hour we are in, using the API's own clock
         int start = 0;
-        if (currentWeather.current != null && currentWeather.current.time != null) {
+        if (currentWeather.current != null && currentWeather.current.time != null
+                && currentWeather.current.time.length() >= 13) {   // Step 87: guard short timestamp
             String nowPrefix = currentWeather.current.time.substring(0, 13);   // "2026-11-25T10"
             for (int i = 0; i < hours; i++) {
-                if (h.time.get(i).startsWith(nowPrefix)) {
+                String slotTime = h.time.get(i);
+                if (slotTime != null && slotTime.startsWith(nowPrefix)) {   // Step 87: guard null slot
                     start = i;
                     break;
                 }
@@ -937,21 +959,26 @@ public class MainActivity extends AppCompatActivity {
         List<HourlyItem> items = new ArrayList<>();                // Step 64
 
         for (int i = start; i < end; i++) {
+            String slotTime = h.time.get(i);
+            Double temp = h.temperature.get(i);
+            Integer code = h.weatherCode.get(i);
+            if (slotTime == null || temp == null || code == null) continue;   // Step 87: skip null element
 
-            boolean isDay = h.isDay != null && i < h.isDay.size()   // Step 65
+            boolean isDay = h.isDay != null && i < h.isDay.size() && h.isDay.get(i) != null   // Step 65 + 87
                     ? h.isDay.get(i) == 1
                     : dayFallback;
 
+            boolean isNow = items.isEmpty();                       // Step 64 + 87: first valid cell is "NOW"
             items.add(new HourlyItem(
-                    hourLabel(h.time.get(i), i == start),          // "NOW" / "10 PM"
-                    h.temperature.get(i),
-                    h.weatherCode.get(i),
+                    hourLabel(slotTime, isNow),                    // "NOW" / "10 PM"
+                    temp,
+                    code,
                     isDay,
-                    i == start));                                  // Step 64
+                    isNow));                                       // Step 64
 
-            if (i == start) {                                      // Step 65: verify the icon choice
+            if (isNow) {                                           // Step 65: verify the icon choice
                 Log.d(TAG, "First hour icon: " + getResources().getResourceEntryName(
-                        WeatherCodeIconMapper.iconFor(h.weatherCode.get(i), isDay)));
+                        WeatherCodeIconMapper.iconFor(code, isDay)));
             }
         }
 
@@ -1028,12 +1055,7 @@ public class MainActivity extends AppCompatActivity {
         tvWindSpeed.setText(String.format(Locale.US, "%.1f km/h", c.windSpeed));   // Step 33
         tvPrecipitation.setText(String.format(Locale.US, "%.1f mm", c.precipitation));   // Step 34
 
-
-
-//        ivCurrentWeather.setImageResource(                            // Step 36: code -> icon
-//                WeatherCodeIconMapper.iconFor(95, false));   // test: strom
-
-        int icon = WeatherCodeIconMapper.iconFor(c.weatherCode, c.isDay == 1);   // Step 40
+        int icon = WeatherCodeIconMapper.iconFor(c.weatherCode, c.isDay == 1);   // Step 40 (Step 88: temporary storm test removed)
 
         ivCurrentWeather.setImageResource(icon);        // Step 40: big card icon
         ivHeaderWeather.setImageResource(icon);         // Step 40: header icon
@@ -1118,6 +1140,20 @@ public class MainActivity extends AppCompatActivity {
         tvWindSpeed.setTextColor(value);
         tvPrecipitation.setTextColor(value);
         tvError.setTextColor(isDay ? 0xFFB3261E : 0xFFFFB4AB);       // Step 79
+
+        // Step 87: keep search box and error banner readable against night/day backgrounds
+        int searchHint = isDay ? 0xFF718096 : 0xFF94A3B8;
+        etCitySearch.setTextColor(value);
+        etCitySearch.setHintTextColor(searchHint);
+        searchLayout.setDefaultHintTextColor(ColorStateList.valueOf(searchHint));
+        searchLayout.setBoxStrokeColor(isDay ? 0xFF2F6FED : 0xFF6BA6FF);
+
+        Drawable errorBg = llError.getBackground();
+        if (errorBg != null) {
+            errorBg = errorBg.mutate();
+            errorBg.setTint(isDay ? 0xFFFDECEA : 0xFF3B1D22);        // Step 87: dark red card at night
+            llError.setBackground(errorBg);
+        }
 
         hourlyAdapter.setNightMode(!isDay);                          // Step 79
         dailyAdapter.setNightMode(!isDay);

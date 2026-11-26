@@ -15,19 +15,25 @@ public class RetrofitClient {
     private static final String IP_BASE_URL =            // Step 76: IP location host
             "https://ipwho.is/";
 
+    private static final GsonConverterFactory GSON_FACTORY =   // Step 89: shared converter
+            GsonConverterFactory.create();
+
     private static Retrofit retrofit;
     private static Retrofit geocodingRetrofit;           // Step 51
     private static Retrofit ipRetrofit;                  // Step 76
 
+    /** Step 89: shared Retrofit builder — avoids repeating baseUrl + Gson setup. */
+    private static Retrofit buildClient(String baseUrl) {
+        return new Retrofit.Builder()
+                .baseUrl(baseUrl)
+                .addConverterFactory(GSON_FACTORY)
+                .build();
+    }
+
     public static WeatherApi getApi() {
 
         if (retrofit == null) {
-            retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .addConverterFactory(
-                            GsonConverterFactory.create()
-                    )
-                    .build();
+            retrofit = buildClient(BASE_URL);            // Step 89
         }
 
         return retrofit.create(WeatherApi.class);
@@ -37,10 +43,7 @@ public class RetrofitClient {
     public static GeocodingApi getGeocodingApi() {
 
         if (geocodingRetrofit == null) {
-            geocodingRetrofit = new Retrofit.Builder()
-                    .baseUrl(GEOCODING_BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+            geocodingRetrofit = buildClient(GEOCODING_BASE_URL);   // Step 89
         }
 
         return geocodingRetrofit.create(GeocodingApi.class);
@@ -50,10 +53,7 @@ public class RetrofitClient {
     public static IpLocationApi getIpLocationApi() {
 
         if (ipRetrofit == null) {
-            ipRetrofit = new Retrofit.Builder()
-                    .baseUrl(IP_BASE_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
+            ipRetrofit = buildClient(IP_BASE_URL);       // Step 89
         }
 
         return ipRetrofit.create(IpLocationApi.class);

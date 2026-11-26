@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Step 68: one row of the 7-day forecast -->
+<!-- Step 87: wrap_content + minHeight avoids clipping at large font scales -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="58dp"
+    android:layout_height="wrap_content"
+    android:minHeight="58dp"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="4dp"
-    android:paddingEnd="4dp">
+    android:paddingTop="6dp"
+    android:paddingEnd="4dp"
+    android:paddingBottom="6dp">
 
     <!-- Step 68: "Today" / "Tomorrow" / "Wed" -->
     <TextView
