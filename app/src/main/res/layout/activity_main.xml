@@ -69,7 +69,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRefresh"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="10dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -143,7 +143,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRetry"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="48dp"
                 android:layout_marginStart="8dp"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -168,10 +168,12 @@
 
         <!-- Main Weather Card -->
         <LinearLayout
+            android:id="@+id/cardMain"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:background="@drawable/bg_weather_card"
+            android:focusable="true"
             android:orientation="vertical"
             android:padding="24dp">
 
@@ -185,6 +187,7 @@
                 android:letterSpacing="0.12" />
 
             <LinearLayout
+                android:importantForAccessibility="noHideDescendants"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
@@ -243,6 +246,7 @@
                 android:background="#55FFFFFF" />
 
             <LinearLayout
+                android:importantForAccessibility="noHideDescendants"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"

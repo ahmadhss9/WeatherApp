@@ -1049,6 +1049,35 @@ public class MainActivity extends AppCompatActivity {
         }
 
         applyTheme(c.isDay == 1);                                    // Step 79: day / night palette
+
+        describeForTalkBack(c);                                      // Step 80
+    }
+
+    /** Step 80: one spoken sentence for the whole card instead of six loose numbers. */
+    private void describeForTalkBack(WeatherResponse.CurrentWeather c) {
+
+        StringBuilder summary = new StringBuilder();                 // Step 80
+
+        summary.append(Math.round(c.temperature)).append(" degrees, ")
+                .append(WeatherCodeMapper.describe(c.weatherCode))
+                .append(", feels like ")
+                .append(Math.round(c.feelsLike)).append(" degrees");
+
+        if (currentWeather.daily != null && currentWeather.daily.size() > 0) {
+            summary.append(", high ")
+                    .append(Math.round(currentWeather.daily.temperatureMax.get(0)))
+                    .append(", low ")
+                    .append(Math.round(currentWeather.daily.temperatureMin.get(0)));
+        }
+
+        View card = findViewById(R.id.cardMain);                     // Step 80
+        card.setContentDescription(summary.toString());
+
+        String iconText = WeatherCodeMapper.describe(c.weatherCode)
+                + (c.isDay == 1 ? ", day" : ", night");              // Step 80
+
+        ivCurrentWeather.setContentDescription(iconText);            // Step 80
+        ivHeaderWeather.setContentDescription(iconText);             // Step 80
     }
 
     /** Step 79: light palette by day, dark palette at night (driven by API is_day). */
