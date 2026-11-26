@@ -15,9 +15,10 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/img"
         android:label="@string/app_name"
+        android:description="@string/app_description"
         android:roundIcon="@drawable/img"
         android:supportsRtl="true"
-        android:theme="@style/Theme.WeatherApp">
+        android:theme="@style/Theme.WeatherApp"><!-- Step 92: description shown in app info settings -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

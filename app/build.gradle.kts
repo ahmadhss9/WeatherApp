@@ -10,12 +10,16 @@ android {
 
     defaultConfig {
         applicationId = "com.example.weatherapp"
-        minSdk = 24
-        targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = 24           // Step 91: Android 7.0 (API 24) minimum
+        targetSdk = 37        // Step 91: latest stable target
+        versionCode = 1       // Step 91: bump on every release to Play Store
+        versionName = "1.0"   // Step 91: human-readable version shown in About
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildFeatures {
+        buildConfig = true  // Step 91: generate BuildConfig so VERSION_NAME is accessible in Java
     }
 
     buildTypes {

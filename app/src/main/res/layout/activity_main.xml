@@ -444,5 +444,17 @@
             android:padding="12dp"
             android:scrollbars="none" />
 
+        <!-- Step 91: app version footer shown at the bottom of the main scroll view -->
+        <TextView
+            android:id="@+id/tvVersion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="@string/app_version"
+            android:textColor="#AABABF"
+            android:textSize="12sp" />
+
     </LinearLayout>
 </ScrollView>

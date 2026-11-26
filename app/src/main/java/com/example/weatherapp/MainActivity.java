@@ -19,6 +19,7 @@ import com.example.weatherapp.models.ApiError;   // Step 28
 import com.example.weatherapp.models.WeatherResponse;
 import com.google.gson.Gson;                     // Step 28
 import com.google.gson.JsonSyntaxException;      // Step 28
+import com.example.weatherapp.BuildConfig;       // Step 91: VERSION_NAME at runtime
 
 import java.io.IOException;                      // Step 28
 import java.net.SocketTimeoutException;          // Step 28
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
     private final DailyAdapter dailyAdapter = new DailyAdapter();             // Step 68-69
     private ProgressBar progressBar;                                          // Step 71: loading spinner
     private int activeRequests = 0;                                           // Step 71: weather + search
+    private TextView tvVersion;                                               // Step 91: version footer
 
 
     // Step 43: permission dialog result comes back here
@@ -247,6 +249,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Step 88: temporary hardcoded launch call removed
+        // Step 91: bind version footer — reads BuildConfig.VERSION_NAME so the string
+        //          stays in sync with versionName in build.gradle.kts automatically
+        tvVersion = findViewById(R.id.tvVersion);
+        if (tvVersion != null) {
+            tvVersion.setText("v" + BuildConfig.VERSION_NAME);   // Step 91: e.g. "v1.0"
+        }
+
         if (restoreSavedCity()) {                 // Step 60: saved city wins
             loadSelectedCityWeather();            // Step 60: weather for the saved city
         } else {

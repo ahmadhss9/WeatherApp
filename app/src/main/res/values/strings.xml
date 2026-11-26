@@ -1,3 +1,10 @@
 <resources>
+    <!-- Step 91: app display name shown in launcher and task switcher -->
     <string name="app_name">WeatherApp</string>
+
+    <!-- Step 92: short description used in About / accessibility metadata -->
+    <string name="app_description">Live weather, hourly &amp; 7-day forecast with GPS location detection</string>
+
+    <!-- Step 91: version shown in the footer of the main screen -->
+    <string name="app_version">v1.0</string>
 </resources>
