@@ -142,6 +142,7 @@ public class MainActivity extends AppCompatActivity {
     private TextInputEditText etCitySearch;                                   // Step 54
     private LinearLayout llSearchResults;                                     // Step 56: results container
     private GeocodingResponse.Result selectedCity;                            // Step 57: chosen city
+    private boolean isSelectingCity = false;
     private RecyclerView rvHourly;                                            // Step 64: hourly strip
     private final HourlyAdapter hourlyAdapter = new HourlyAdapter();          // Step 63-64
     private RecyclerView rvDaily;                                             // Step 69: 7-day list
@@ -211,6 +212,7 @@ public class MainActivity extends AppCompatActivity {
         hadPermission = locationHelper.hasPermission();   // Step 50: remember current state
 
         btnToggleSearch = findViewById(R.id.btnToggleSearch);        // UI redesign: header search lens
+        btnToggleSearch.setOnClickListener(v -> toggleSearchBar());
         llSearchBar = findViewById(R.id.llSearchBar);                // UI redesign: hidden until tapped
         btnSearch = findViewById(R.id.btnSearch);                    // Step 54
         searchLayout = findViewById(R.id.searchLayout);              // Step 87
@@ -225,12 +227,19 @@ public class MainActivity extends AppCompatActivity {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void afterTextChanged(Editable s) {
+                if (isSelectingCity) {
+                    return;
+                }
                 // Cancel previous pending search
                 if (pendingSearch[0] != null) searchHandler.removeCallbacks(pendingSearch[0]);
+                String query = s.toString().trim();
+                if (query.isEmpty()) {
+                    hideSearchResults();
+                    return;
+                }
                 // Schedule new search after delay
                 pendingSearch[0] = () -> {
-                    String query = s.toString().trim();
-                    if (!query.isEmpty()) {
+                    if (llSearchBar.getVisibility() == View.VISIBLE && !isSelectingCity) {
                         performSearch(query);
                     }
                 };
@@ -533,7 +542,7 @@ public class MainActivity extends AppCompatActivity {
 
         llSearchResults.removeAllViews();                              // Step 56: no stale rows
 
-        if (results == null || results.isEmpty()) {                    // Step 56
+        if (results == null || results.isEmpty() || llSearchBar.getVisibility() != View.VISIBLE) {                    // Step 56
             llSearchResults.setVisibility(View.GONE);
             return;
         }
@@ -572,6 +581,11 @@ public class MainActivity extends AppCompatActivity {
     private void showNoCityFound(String query) {
 
         llSearchResults.removeAllViews();                              // Step 75
+
+        if (llSearchBar.getVisibility() != View.VISIBLE) {
+            llSearchResults.setVisibility(View.GONE);
+            return;
+        }
 
         View row = LayoutInflater.from(this)
                 .inflate(R.layout.item_city_empty, llSearchResults, false);   // Step 75
@@ -614,11 +628,14 @@ public class MainActivity extends AppCompatActivity {
         Log.d("GEOCODE", "Selected: " + city.label()
                 + "  (" + city.latitude + ", " + city.longitude + ")");   // Step 57
 
+        isSelectingCity = true;
         selectedCity = city;                                          // Step 57: remember the choice
         saveSelectedCity(city);                                       // Step 59: persist it
 
         tvLocation.setText(city.label());                             // Step 57: header shows the choice
         etCitySearch.setText(city.name);                              // Step 57: keep the name, not the region
+        isSelectingCity = false;
+
         setSearchBarVisible(false);                                   // UI redesign: collapse bar & keyboard
 
         loadSelectedCityWeather();                                    // Step 58: fetch this city
