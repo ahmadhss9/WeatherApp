@@ -4,7 +4,11 @@ package com.example.weatherapp;
 // 28 failures, 29 log, 30 display live temperature.
 
 import android.os.Bundle;
+
+import android.text.TextWatcher;
+import android.text.Editable;
 import android.util.Log;
+import android.os.Handler;
 import android.widget.TextView;                  // Step 30
 
 import androidx.activity.EdgeToEdge;
@@ -213,7 +217,26 @@ public class MainActivity extends AppCompatActivity {
         etCitySearch = findViewById(R.id.etCitySearch);              // Step 54
         llSearchResults = findViewById(R.id.llSearchResults);        // Step 56
 
-        btnToggleSearch.setOnClickListener(v -> toggleSearchBar());  // UI redesign: show/hide search bar
+
+        // Add live suggestion TextWatcher with debounce (300ms)
+        final Handler searchHandler = new Handler(Looper.getMainLooper());
+        final Runnable[] pendingSearch = {null};
+        etCitySearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
+            @Override public void afterTextChanged(Editable s) {
+                // Cancel previous pending search
+                if (pendingSearch[0] != null) searchHandler.removeCallbacks(pendingSearch[0]);
+                // Schedule new search after delay
+                pendingSearch[0] = () -> {
+                    String query = s.toString().trim();
+                    if (!query.isEmpty()) {
+                        performSearch(query);
+                    }
+                };
+                searchHandler.postDelayed(pendingSearch[0], 300);
+            }
+        });
 
         rvHourly = findViewById(R.id.rvHourly);                      // Step 64
         rvHourly.setLayoutManager(                                   // Step 64: horizontal list
@@ -225,6 +248,7 @@ public class MainActivity extends AppCompatActivity {
         rvDaily = findViewById(R.id.rvDaily);                        // Step 69
         rvDaily.setLayoutManager(new LinearLayoutManager(this));     // Step 69: vertical
         rvDaily.setAdapter(dailyAdapter);                            // Step 68-69
+        rvDaily.setVisibility(View.VISIBLE); // Ensure daily list is visible
         rvDaily.setHasFixedSize(false);                              // Step 78 + 87: wrap_content height must re-measure on update
         rvDaily.setNestedScrollingEnabled(false);                    // Step 78: no nested vertical scroll
 
@@ -367,8 +391,12 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("LOCATION", "IP location: " + label
                         + " (" + body.latitude + ", " + body.longitude + ")");
 
+                // after fetching IP location, always show something in the header
                 if (label != null) {
                     tvLocation.setText(label);                       // Step 76: approximate city
+                } else {
+                    // fallback to coordinates if the label is missing
+                    tvLocation.setText(String.format(Locale.US, "%.2f, %.2f", body.latitude, body.longitude));
                 }
 
                 fetchCurrentWeather(body.latitude, body.longitude);  // Step 76: weather for IP coords
@@ -920,6 +948,8 @@ public class MainActivity extends AppCompatActivity {
                     items.isEmpty()));                             // Step 69
         }
 
+        // Ensure the daily RecyclerView is visible when we have data
+        rvDaily.setVisibility(View.VISIBLE);
         dailyAdapter.submitList(items);                            // Step 69
         Log.d(TAG, "Daily cells: " + items.size());
     }

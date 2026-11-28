@@ -22,8 +22,18 @@ android {
         buildConfig = true  // Step 91: generate BuildConfig so VERSION_NAME is accessible in Java
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("C:\\Users\\Ahmad Hassan\\Downloads\\my-release-key.jks")
+            storePassword = "@54321"
+            keyAlias = "weatherapp"
+            keyPassword = "@54321"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             optimization {
                 enable = false
             }
