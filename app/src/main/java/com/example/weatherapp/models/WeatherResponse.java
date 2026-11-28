@@ -45,7 +45,7 @@ public class WeatherResponse {
         @SerializedName("precipitation")
         public double precipitation;
 
-        @SerializedName("weather_code")
+        @SerializedName(value = "weather_code", alternate = {"weathercode"})
         public int weatherCode;
 
         @SerializedName("wind_speed_10m")
@@ -64,7 +64,7 @@ public class WeatherResponse {
         @SerializedName("temperature_2m")
         public List<Double> temperature;             // °C
 
-        @SerializedName("weather_code")
+        @SerializedName(value = "weather_code", alternate = {"weathercode"})
         public List<Integer> weatherCode;            // WMO code, mapper from step 35
 
         @SerializedName("is_day")
@@ -72,13 +72,13 @@ public class WeatherResponse {
 
         /** Step 61-65: how many complete hours we can safely display (0 = unusable). */
         public int size() {
-            if (time == null || temperature == null || weatherCode == null) {
+            if (time == null || temperature == null) {
                 return 0;                            // partial block -> show nothing
             }
 
             int n = time.size();
             n = Math.min(n, temperature.size());
-            n = Math.min(n, weatherCode.size());
+            if (weatherCode != null) n = Math.min(n, weatherCode.size());
 
             // Step 65: is_day is optional — hours without it fall back to current.isDay
             if (isDay != null) n = Math.min(n, isDay.size());
@@ -96,7 +96,7 @@ public class WeatherResponse {
         @SerializedName("time")
         public List<String> time;
 
-        @SerializedName("weather_code")
+        @SerializedName(value = "weather_code", alternate = {"weathercode"})
         public List<Integer> weatherCode;
 
         @SerializedName("temperature_2m_max")
@@ -107,15 +107,14 @@ public class WeatherResponse {
 
         /** Step 66: how many complete days we can safely display. */
         public int size() {
-            if (time == null || weatherCode == null
-                    || temperatureMax == null || temperatureMin == null) {
+            if (time == null || temperatureMax == null || temperatureMin == null) {
                 return 0;
             }
 
             int n = time.size();
-            n = Math.min(n, weatherCode.size());
             n = Math.min(n, temperatureMax.size());
             n = Math.min(n, temperatureMin.size());
+            if (weatherCode != null) n = Math.min(n, weatherCode.size());
             return n;
         }
     }

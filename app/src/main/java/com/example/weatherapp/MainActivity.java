@@ -954,20 +954,24 @@ public class MainActivity extends AppCompatActivity {
             String date = d.time.get(i);
             Double max = d.temperatureMax.get(i);
             Double min = d.temperatureMin.get(i);
-            Integer code = d.weatherCode.get(i);
-            if (date == null || max == null || min == null || code == null) continue;   // Step 87: skip null element
+            Integer code = (d.weatherCode != null && i < d.weatherCode.size()) ? d.weatherCode.get(i) : null;
+            if (date == null || max == null || min == null) continue;   // Step 87: skip null element
+
+            int weatherCode = (code != null) ? code : 0;
+            boolean isToday = items.isEmpty();
 
             items.add(new DailyItem(
                     dayLabel(date, items.size()),                  // "Today" / "Tomorrow" / "Friday"
                     max,                                           // step 70 reads these
                     min,
-                    code,
-                    items.isEmpty()));                             // Step 69
+                    weatherCode,
+                    isToday));                                     // Step 69
         }
 
         // Ensure the daily RecyclerView is visible when we have data
         rvDaily.setVisibility(View.VISIBLE);
         dailyAdapter.submitList(items);                            // Step 69
+        rvDaily.post(() -> rvDaily.requestLayout());
         Log.d(TAG, "Daily cells: " + items.size());
     }
 
